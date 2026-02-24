@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/HardikMohite/PhishPulse-#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.22.0"
   }
 }
