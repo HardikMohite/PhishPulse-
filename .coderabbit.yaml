@@ -2,6 +2,8 @@ language: "en"
 
 reviews:
   profile: "chill"
+  auto_review:
+    enabled: true
   request_changes_workflow: true
   high_level_summary: true
   review_status: true
