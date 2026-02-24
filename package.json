@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/HardikMohite/PhishPulse-/issues"
   },
-  "homepage": "https://github.com/HardikMohite/PhishPulse-#readme"
+  "homepage": "https://github.com/HardikMohite/PhishPulse-#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
