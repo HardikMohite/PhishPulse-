@@ -3,3 +3,16 @@ package-lock.json
 build
 dist
 coverage
+# VSCode debug chrome profile (VERY IMPORTANT)
+.vscode/vite-chrome-profile/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

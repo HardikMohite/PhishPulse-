@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Debug Vite React App",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend",
+      "preLaunchTask": "vite: dev (frontend)",
+      "userDataDir": "${workspaceFolder}/.vscode/vite-chrome-profile",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
