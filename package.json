@@ -20,9 +20,19 @@
   },
   "homepage": "https://github.com/HardikMohite/PhishPulse-#readme",
   "dependencies": {
-    "express": "^4.22.0"
+    "express": "^4.22.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
-    "prettier": "^3.8.1"
+    "@eslint/js": "^9.39.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.3",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.3.0",
+    "jiti": "^2.6.1",
+    "prettier": "^3.8.1",
+    "typescript-eslint": "^8.56.1"
   }
 }
