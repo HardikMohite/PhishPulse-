@@ -1,7 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* Global defaults that use the design tokens defined later in @layer base */
+
+/* Global reset + layout sizing */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
 :root {
   --font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-family: var(--font-family);
