@@ -1,18 +1,50 @@
-node_modules/
-package-lock.json
-build
-dist
-coverage
-# VSCode debug chrome profile (VERY IMPORTANT)
-.vscode/vite-chrome-profile/
+# ===============================
+# PHISHPULSE ROOT .GITIGNORE
+# Fullstack: React + FastAPI
+# ===============================
 
-# Node modules
 node_modules/
+# ---------- FRONTEND (React/Vite) ----------
 frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
 
-# Logs
-*.log
+# ---------- BACKEND (Python/FastAPI) ----------
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.coverage
+backend/*.log
+backend/phishpulse.db
 
-# OS files
+# ---------- OS FILES ----------
 .DS_Store
 Thumbs.db
+
+# ---------- IDE ----------
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+.idea/
+
+# ---------- GIT ----------
+.gitignore
+.gitkeep
+
+# ---------- MISC ----------
+*.log
+*.tmp
+*.swp

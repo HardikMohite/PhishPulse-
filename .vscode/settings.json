@@ -1,4 +1,14 @@
 {
   "snyk.advanced.organization": "652657e0-022f-44a8-b8de-cfee022d5d52",
-  "snyk.advanced.autoSelectOrganization": true
+  "snyk.advanced.autoSelectOrganization": true,
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "tailwindCSS.includeLanguages": {
+    "typescriptreact": "html",
+    "javascriptreact": "html"
+  },
+  "editor.quickSuggestions": {
+    "strings": true
+  }
 }
