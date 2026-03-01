@@ -1,105 +1,101 @@
-import axios from "axios";
+import api from './api';
 
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
-  withCredentials: true, // send httpOnly cookies automatically
-});
+// Auth API endpoints
+const AUTH_ENDPOINTS = {
+  REGISTER: 'auth/register',
+  LOGIN: 'auth/login',
+  VERIFY_2FA: 'auth/verify-2fa',
+  RESEND_OTP: 'auth/resend-otp',
+  LOGOUT: 'auth/logout',
+  ME: 'auth/me',
+  FORGOT_PASSWORD: 'auth/forgot-password',
+  RESET_PASSWORD: 'auth/reset-password',
+} as const;
 
-// Intercept responses to normalize errors
-API.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    const message = err.response?.data?.detail || err.message || "Something went wrong.";
-    return Promise.reject(new Error(message));
-  }
-);
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
-
-export interface RegisterPayload {
+export interface RegisterData {
   name: string;
   email: string;
-  phone: string;
   password: string;
-  confirmPassword: string;
+  phone: string;
 }
 
-export interface OtpPayload {
-  userId: string;
+export interface LoginData {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface Verify2FAData {
+  email: string;
   code: string;
 }
 
-export interface ResendOtpPayload {
-  userId: string;
+export interface ForgotPasswordData {
+  email: string;
 }
 
-// ─── Auth API calls ───────────────────────────────────────────────────────────
+export interface ResetPasswordData {
+  token: string;
+  password: string;
+}
 
-export const login = async (payload: LoginPayload) => {
-  const res = await API.post("/auth/login", {
-    email: payload.email,
-    password: payload.password,
-    remember_me: payload.rememberMe,
-  });
-  return res.data; // { user, userId }
+export const register = async (data: RegisterData) => {
+  const response = await api.post(AUTH_ENDPOINTS.REGISTER, data);
+  return response.data;
 };
 
-export const register = async (payload: RegisterPayload) => {
-  const res = await API.post("/auth/register", {
-    name: payload.name,
-    email: payload.email,
-    phone: payload.phone,
-    password: payload.password,
-  });
-  return res.data; // { userId, phone, message }
+export const login = async (data: LoginData) => {
+  const response = await api.post(AUTH_ENDPOINTS.LOGIN, data);
+  return response.data;
 };
 
-export const verifyOtp = async (payload: OtpPayload) => {
-  const res = await API.post("/auth/verify-otp", {
-    user_id: payload.userId,
-    code: payload.code,
-  });
-  return res.data;
+export const verify2FA = async (data: Verify2FAData) => {
+  const response = await api.post(AUTH_ENDPOINTS.VERIFY_2FA, data);
+  if (response.data.access_token) {
+    localStorage.setItem('token', response.data.access_token);
+  }
+  return response.data;
 };
 
-export const resendOtp = async (payload: ResendOtpPayload) => {
-  const res = await API.post("/auth/resend-otp", {
-    user_id: payload.userId,
-  });
-  return res.data;
-};
+export const verifyOtp = verify2FA;
 
-export const forgotPassword = async (email: string) => {
-  const res = await API.post("/auth/forgot-password", { email });
-  return res.data;
-};
-
-export const resetPassword = async (token: string, newPassword: string) => {
-  const res = await API.post("/auth/reset-password", {
-    token,
-    new_password: newPassword,
-  });
-  return res.data;
+export const resendOtp = async (email: string) => {
+  const response = await api.post(AUTH_ENDPOINTS.RESEND_OTP, { email });
+  return response.data;
 };
 
 export const logout = async () => {
-  const res = await API.post("/auth/logout");
-  localStorage.removeItem("access_token"); // Clear any cached token
-  return res.data;
+  try {
+    await api.post(AUTH_ENDPOINTS.LOGOUT);
+  } finally {
+    localStorage.removeItem('token');
+  }
 };
 
 export const getMe = async () => {
-  const res = await API.get("/auth/me");
-  return res.data;
+  const response = await api.get(AUTH_ENDPOINTS.ME);
+  return response.data;
 };
 
-// Helper to get access token from localStorage (if needed for manual requests)
-export function getAccessToken(): string | null {
-  return localStorage.getItem("access_token");
-}
+export const checkAuth = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return { authenticated: false, user: null };
+    }
+    const user = await getMe();
+    return { authenticated: true, user };
+  } catch (error) {
+    return { authenticated: false, user: null };
+  }
+};
+
+export const forgotPassword = async (data: ForgotPasswordData) => {
+  const response = await api.post(AUTH_ENDPOINTS.FORGOT_PASSWORD, data);
+  return response.data;
+};
+
+export const resetPassword = async (data: ResetPasswordData) => {
+  const response = await api.post(AUTH_ENDPOINTS.RESET_PASSWORD, data);
+  return response.data;
+};

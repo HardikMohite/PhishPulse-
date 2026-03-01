@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production-min-32-chars"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    ACCESS_TOKEN_EXPIRE_DAYS: int = 1      # Default session without "remember me"
+    REMEMBER_ME_EXPIRE_DAYS: int = 30      # Extended session with "remember me"
     
     # CORS
     FRONTEND_URL: str = "http://localhost:5173"
@@ -30,19 +30,11 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = f"sqlite:///{BACKEND_DIR}/phishpulse.db"
     
-    # Email (for password reset - configure in production)
-    SMTP_ENABLED: bool = False  # Set to True when SMTP is configured
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    FROM_EMAIL: str = "noreply@phishpulse.com"
+    # Email Settings
+    FROM_EMAIL: str = "noreply@phishpulse.com"  # Customize your sender email
     
-    # Twilio (for SMS 2FA - optional)
-    TWILIO_ENABLED: bool = False  # Set to True when Twilio is configured
-    TWILIO_ACCOUNT_SID: str = ""
-    TWILIO_AUTH_TOKEN: str = ""
-    TWILIO_PHONE_NUMBER: str = ""
+    # Brevo API (for transactional emails and OTP)
+    BREVO_API_KEY: str = ""  # Get from https://app.brevo.com/settings/keys/api
     
     model_config = SettingsConfigDict(
         env_file=str(BACKEND_DIR / ".env"),

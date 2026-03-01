@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Clock, Brain, ShieldCheck } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
 
 // Dynamic vault count — update this as vaults are added
 const VAULT_COUNT = 5;
@@ -159,6 +160,15 @@ const fadeUp = {
 
 export default function HubPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
+  const handleEnterCommandCenter = () => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth/login");
+    }
+  };
 
   return (
     <div
@@ -264,7 +274,7 @@ export default function HubPage() {
         {/* CTA Button */}
         <motion.div variants={fadeUp} className="flex flex-col items-center gap-3">
           <motion.button
-            onClick={() => navigate("/auth/login")}
+            onClick={handleEnterCommandCenter}
             className="relative px-10 py-4 text-white font-semibold text-base rounded-lg tracking-wide"
             style={{
               background: "transparent",
@@ -280,7 +290,7 @@ export default function HubPage() {
             }}
             whileTap={{ scale: 0.98 }}
           >
-            Enter Command Center
+            {isAuthenticated ? "Enter Dashboard" : "Enter Command Center"}
           </motion.button>
 
           <p className="text-xs" style={{ color: "#475569" }}>

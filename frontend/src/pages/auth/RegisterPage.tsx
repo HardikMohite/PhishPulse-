@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Eye, EyeOff, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { register } from "@/services/authService";
+import CustomShield from "@/components/CustomShield";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -42,16 +43,28 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
+    // Basic validation
+    if (!form.name.trim()) return setError("Please enter your name.");
+    if (!form.email.trim()) return setError("Please enter your email.");
+    if (!form.phone.trim()) return setError("Please enter your phone number.");
+    if (!form.password) return setError("Please enter a password.");
+    if (!form.confirmPassword) return setError("Please confirm your password.");
+    
+    // Password validation
     if (!allPolicyMet) return setError("Password does not meet all requirements.");
     if (!passwordsMatch) return setError("Passwords do not match.");
     if (!agreed) return setError("Please accept the Terms & Conditions.");
+    
     setLoading(true);
     try {
       const data = await register(form);
-      navigate("/auth/2fa", { state: { userId: data.userId, phone: form.phone, from: "register" } });
-    } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
-      else setError("Registration failed. Please try again.");
+      // Backend now returns sessionId instead of userId for session-based registration
+      navigate("/auth/2fa", { state: { sessionId: data.sessionId, email: form.email, from: "register" } });
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      // The axios interceptor already extracts the proper error message
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -65,9 +78,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10" style={{ background: "#0a0a0f" }}>
-      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-2 mb-8">
-        <Shield size={24} className="text-cyan-400" strokeWidth={1.8} />
-        <span className="text-xl font-semibold tracking-wide">
+      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-3 mb-8">
+        <CustomShield size={36} className="text-cyan-400" strokeWidth={2} />
+        <span className="text-3xl font-bold tracking-wide">
           <span className="text-white">Phish</span>
           <span className="text-cyan-400">Pulse</span>
         </span>

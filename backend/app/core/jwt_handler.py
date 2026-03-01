@@ -3,11 +3,12 @@ from jose import JWTError, jwt
 from fastapi import HTTPException, Request, status
 from app.config import settings
 
-ALGORITHM = "HS256"
+ALGORITHM = settings.ALGORITHM
 
 
 def create_access_token(user_id: str, remember_me: bool = False) -> str:
-    expire_days = 30 if remember_me else 1
+    """Create JWT access token with configurable expiry."""
+    expire_days = settings.REMEMBER_ME_EXPIRE_DAYS if remember_me else settings.ACCESS_TOKEN_EXPIRE_DAYS
     expire = datetime.now(timezone.utc) + timedelta(days=expire_days)
     payload = {"sub": user_id, "exp": expire}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)

@@ -17,7 +17,7 @@ class User(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False, index=True)
-    phone = Column(String, unique=True, nullable=False)
+    phone = Column(String, nullable=False)  # Removed unique constraint - allow same phone for multiple accounts
     hashed_password = Column(String, nullable=False)
     role = Column(SAEnum(UserRole), default=UserRole.employee, nullable=False)
 

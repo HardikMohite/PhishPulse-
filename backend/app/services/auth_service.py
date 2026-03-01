@@ -1,6 +1,6 @@
+import secrets
 import random
 import string
-import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -8,52 +8,72 @@ from app.models.user import User
 from app.core.security import hash_password, verify_password
 from app.schemas.auth_schema import RegisterRequest, LoginRequest
 from app.config import settings
+from app.utils.session_manager import session_manager
 
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
-OTP_EXPIRY_MINUTES = 5
 
 
 def _generate_otp() -> str:
+    """Generate a 6-digit OTP code."""
     return "".join(random.choices(string.digits, k=6))
 
 
-def _send_sms(phone: str, message: str):
-    # TODO: Integrate Twilio in Phase 3
-    # For now print to console during development
-    print(f"[SMS] To: {phone} | Message: {message}")
-
-
-def _send_email(email: str, subject: str, body: str):
-    # TODO: Integrate email service in Phase 3
-    print(f"[EMAIL] To: {email} | Subject: {subject} | Body: {body}")
-
-
-def register_user(payload: RegisterRequest, db: Session) -> User:
-    # Check duplicates
+def register_user(payload: RegisterRequest, db: Session) -> dict:
+    """
+    Session-based registration: Store data temporarily, only create DB user after OTP verification.
+    Returns session_id instead of user object.
+    """
+    # Check if email already exists (only verified users in DB)
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered.")
-    if db.query(User).filter(User.phone == payload.phone).first():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone number already registered.")
+    
+    # Phone can be shared across multiple accounts - no uniqueness check
 
-    otp = _generate_otp()
-    otp_expires = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    # Generate OTP code
+    otp_code = _generate_otp()
 
-    user = User(
-        name=payload.name,
+    # Create session (not DB user yet)
+    session_id = session_manager.create_session(
         email=payload.email,
+        name=payload.name,
         phone=payload.phone,
         hashed_password=hash_password(payload.password),
-        otp_code=otp,
-        otp_expires_at=otp_expires,
-        is_verified=False,
+        otp_code=otp_code
     )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    _send_sms(user.phone, f"Your PhishPulse verification code is: {otp}. Expires in 5 minutes.")
-    return user
+    
+    # Get session to send OTP
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create registration session.")
+    
+    # Send OTP via Email
+    # Always log OTP in development mode for testing
+    print(f"\n{'='*60}")
+    print(f"📧 OTP CODE FOR TESTING")
+    print(f"Email: {session.email}")
+    print(f"Code: {session.otp_code}")
+    print(f"{'='*60}\n")
+    
+    if hasattr(settings, 'BREVO_API_KEY') and settings.BREVO_API_KEY:
+        try:
+            from app.utils.email_brevo import send_otp_email
+            result = send_otp_email(session.email, session.otp_code, session.name)
+            if result:
+                print(f"[OTP SENT via Brevo] To: {session.email}")
+            else:
+                print(f"[OTP WARNING] Brevo send failed but code is available above")
+        except Exception as e:
+            print(f"[OTP ERROR] {e}")
+            print(f"[OTP - CODE AVAILABLE ABOVE] Email: {session.email}")
+    else:
+        # Development mode: Brevo not configured
+        print(f"[OTP - DEVELOPMENT MODE] Brevo not configured, use code above")
+    
+    return {
+        "session_id": session_id,
+        "message": "OTP sent to email. Please verify within 10 minutes."
+    }
 
 
 def login_user(payload: LoginRequest, db: Session) -> User:
@@ -94,40 +114,77 @@ def login_user(payload: LoginRequest, db: Session) -> User:
     return user
 
 
-def verify_otp(user_id: str, code: str, db: Session) -> User:
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+def verify_otp(session_id: str, code: str, db: Session) -> User:
+    """
+    Verify OTP from session and create DB user only after successful verification.
+    This ensures all-or-nothing registration.
+    """
+    # Get session data
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registration session expired or not found. Please register again.")
 
-    if not user.otp_code or not user.otp_expires_at:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No OTP found. Request a new one.")
+    # Check if OTP expired
+    if datetime.now(timezone.utc) > session.otp_expires_at.replace(tzinfo=timezone.utc):
+        session_manager.delete_session(session_id)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP has expired. Please register again.")
 
-    if datetime.now(timezone.utc) > user.otp_expires_at.replace(tzinfo=timezone.utc):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP has expired. Request a new one.")
+    # Verify OTP code
+    if session.otp_code != code:
+        # Increment failed attempts
+        session_manager.increment_attempts(session_id)
+        remaining = 3 - session.attempts
+        if remaining <= 0:
+            session_manager.delete_session(session_id)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Too many failed attempts. Please register again.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid OTP code. {remaining} attempts remaining.")
 
-    if user.otp_code != code:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP code.")
-
-    # Clear OTP and mark verified
-    user.otp_code = None
-    user.otp_expires_at = None
-    user.is_verified = True
+    # OTP verified! Now create the user in database
+    user = User(
+        name=session.name,
+        email=session.email,
+        phone=session.phone,
+        hashed_password=session.hashed_password,
+        is_verified=True,  # Mark as verified immediately
+        otp_code=None,
+        otp_expires_at=None
+    )
+    db.add(user)
     db.commit()
     db.refresh(user)
+    
+    # Delete session after successful registration
+    session_manager.delete_session(session_id)
+    
+    print(f"[REGISTRATION COMPLETE] User created: {user.email}")
     return user
 
 
-def resend_otp(user_id: str, db: Session) -> None:
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+def resend_otp(session_id: str) -> None:
+    """
+    Resend OTP for session-based registration. Max 2 resends within session window.
+    """
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registration session expired or not found. Please register again.")
 
-    otp = _generate_otp()
-    user.otp_code = otp
-    user.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRY_MINUTES)
-    db.commit()
+    # Generate new OTP within session
+    new_otp = session_manager.generate_new_otp(session_id)
+    if not new_otp:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to generate new OTP.")
 
-    _send_sms(user.phone, f"Your new PhishPulse verification code is: {otp}. Expires in 5 minutes.")
+    # Send OTP via Email
+    if hasattr(settings, 'BREVO_API_KEY') and settings.BREVO_API_KEY:
+        try:
+            from app.utils.email_brevo import send_otp_email
+            send_otp_email(session.email, new_otp, session.name)
+            print(f"[OTP RESENT via Brevo] To: {session.email} | Code: {new_otp}")
+        except Exception as e:
+            print(f"[OTP ERROR] {e}")
+            print(f"[OTP - FALLBACK] Email: {session.email} | Code: {new_otp}")
+    else:
+        # Development mode: print to console
+        print(f"[OTP - DEVELOPMENT MODE] Email: {session.email} | Code: {new_otp}")
 
 
 def forgot_password(email: str, db: Session) -> None:
@@ -142,11 +199,20 @@ def forgot_password(email: str, db: Session) -> None:
     db.commit()
 
     reset_link = f"{settings.FRONTEND_URL}/auth/reset-password?token={token}"
-    _send_email(
-        user.email,
-        "PhishPulse Password Reset",
-        f"Click the link to reset your password: {reset_link}\nExpires in 1 hour."
-    )
+    
+    # Send password reset email via Brevo
+    if hasattr(settings, 'BREVO_API_KEY') and settings.BREVO_API_KEY:
+        try:
+            from app.utils.email_brevo import send_password_reset_email
+            send_password_reset_email(user.email, user.name, reset_link)
+            print(f"[PASSWORD RESET EMAIL SENT via Brevo] To: {user.email}")
+        except Exception as e:
+            print(f"[PASSWORD RESET ERROR] {e}")
+            print(f"[PASSWORD RESET - FALLBACK] User: {user.email} | Reset Link: {reset_link}")
+    else:
+        # Development mode: print to console
+        print(f"[PASSWORD RESET - DEVELOPMENT MODE] User: {user.email}")
+        print(f"Reset Link: {reset_link}")
 
 
 def reset_password(token: str, new_password: str, db: Session) -> None:

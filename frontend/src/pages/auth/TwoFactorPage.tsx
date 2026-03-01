@@ -1,8 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { verifyOtp, resendOtp } from "@/services/authService";
+import CustomShield from "@/components/CustomShield";
+
+// Check what's being imported - we need to match these exact names
+// If you see errors about missing exports, tell me the exact names
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -20,7 +24,12 @@ const OTP_EXPIRY = 5 * 60; // 5 minutes in seconds
 export default function TwoFactorPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { userId, phone, from } = (location.state as { userId: string; phone: string; from: string }) || {};
+  // Support both sessionId (new registration) and userId (legacy/future login 2FA)
+  const stateData = location.state as { sessionId?: string; userId?: string; phone?: string; email?: string; from: string } || {};
+  const { sessionId, userId, phone, email, from } = stateData;
+  
+  // Use sessionId for new registrations, fall back to userId if present
+  const identifierId = sessionId || userId;
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [loading, setLoading] = useState(false);
@@ -74,10 +83,11 @@ export default function TwoFactorPage() {
     const code = otp.join("");
     if (code.length < OTP_LENGTH) return setError("Please enter the complete 6-digit code.");
     if (expiryTimer <= 0) return setError("OTP has expired. Please request a new one.");
+    if (!identifierId) return setError("Session expired. Please register again.");
     setError("");
     setLoading(true);
     try {
-      await verifyOtp({ userId, code });
+      await verifyOtp({ userId: identifierId, code });
       navigate("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
@@ -91,10 +101,11 @@ export default function TwoFactorPage() {
 
   const handleResend = async () => {
     if (resendTimer > 0) return;
+    if (!identifierId) return setError("Session expired. Please register again.");
     setResending(true);
     setError("");
     try {
-      await resendOtp({ userId });
+      await resendOtp({ userId: identifierId });
       setResendTimer(RESEND_COOLDOWN);
       setExpiryTimer(OTP_EXPIRY);
       setOtp(Array(OTP_LENGTH).fill(""));
@@ -106,13 +117,17 @@ export default function TwoFactorPage() {
     }
   };
 
-  const maskedPhone = phone ? phone.replace(/(\d{2})\d+(\d{2})/, "$1•••••$2") : "your phone";
+  const maskedContact = email 
+    ? email.replace(/(.{2})(.*)(@.*)/, "$1•••••$3")
+    : phone 
+    ? phone.replace(/(\d{2})\d+(\d{2})/, "$1•••••$2")
+    : "your email";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "#0a0a0f" }}>
-      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-2 mb-8">
-        <Shield size={24} className="text-cyan-400" strokeWidth={1.8} />
-        <span className="text-xl font-semibold tracking-wide">
+      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-3 mb-8">
+        <CustomShield size={36} className="text-cyan-400" strokeWidth={2} />
+        <span className="text-3xl font-bold tracking-wide">
           <span className="text-white">Phish</span>
           <span className="text-cyan-400">Pulse</span>
         </span>
@@ -125,7 +140,7 @@ export default function TwoFactorPage() {
       >
         <h1 className="text-2xl font-bold text-white mb-1">Verify your identity</h1>
         <p className="text-sm mb-1" style={{ color: "#64748b" }}>
-          Enter the 6-digit code sent to <span style={{ color: "#06b6d4" }}>{maskedPhone}</span>
+          Enter the 6-digit code sent to <span style={{ color: "#06b6d4" }}>{maskedContact}</span>
         </p>
 
         {/* Expiry timer */}
@@ -192,7 +207,7 @@ export default function TwoFactorPage() {
 
         {from === "register" && (
           <p className="text-center text-xs mt-4" style={{ color: "#475569" }}>
-            Wrong number?{" "}
+            Wrong email?{" "}
             <span className="cursor-pointer" style={{ color: "#06b6d4" }}
               onClick={() => navigate("/auth/register")}>
               Go back

@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Loader2, ArrowLeft, MailCheck } from "lucide-react";
+import { Loader2, ArrowLeft, MailCheck } from "lucide-react";
 import { forgotPassword } from "@/services/authService";
+import CustomShield from "@/components/CustomShield";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, delay: i * 0.08, ease: "easeOut" },
+    transition: { duration: 0.5, delay: i * 0.08 },
   }),
 };
 
@@ -24,7 +25,7 @@ export default function ForgotPasswordPage() {
     setError("");
     setLoading(true);
     try {
-      await forgotPassword(email);
+      await forgotPassword({ email });
       setSent(true);
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
@@ -36,9 +37,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "#0a0a0f" }}>
-      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-2 mb-8">
-        <Shield size={24} className="text-cyan-400" strokeWidth={1.8} />
-        <span className="text-xl font-semibold tracking-wide">
+      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-3 mb-8">
+        <CustomShield size={36} className="text-cyan-400" strokeWidth={2} />
+        <span className="text-3xl font-bold tracking-wide">
           <span className="text-white">Phish</span>
           <span className="text-cyan-400">Pulse</span>
         </span>

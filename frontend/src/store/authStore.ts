@@ -1,27 +1,41 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string;
-  role: "employee" | "admin" | "developer";
   level: number;
   xp: number;
-  coins: number;
   streak: number;
+  coins: number;
+  created_at?: string;
 }
 
 interface AuthState {
   user: User | null;
-  isAuthenticated: boolean;
-  setUser: (user: User) => void;
+  loading: boolean;
+  setUser: (user: User | null) => void;
   clearUser: () => void;
+  setLoading: (loading: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  setUser: (user) => set({ user, isAuthenticated: true }),
-  clearUser: () => set({ user: null, isAuthenticated: false }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      loading: false,
+      setUser: (user) => set({ user }),
+      clearUser: () => {
+        localStorage.removeItem("token");
+        set({ user: null });
+      },
+      setLoading: (loading) => set({ loading }),
+    }),
+    {
+      name: "auth-storage",
+      partialize: (state) => ({ user: state.user }),
+    }
+  )
+);
