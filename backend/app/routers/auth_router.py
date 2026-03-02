@@ -75,10 +75,13 @@ def verify_otp(payload: VerifyOtpRequest, response: Response, db: Session = Depe
 def resend_otp(payload: ResendOtpRequest):
     """
     Resend OTP for session-based registration.
-    user_id parameter now accepts session_id for registration flow.
+    user_id parameter accepts session_id for registration flow.
     """
-    auth_service.resend_otp(payload.user_id)
-    return {"message": "OTP resent successfully."}
+    try:
+        auth_service.resend_otp(payload.user_id)
+        return {"message": "OTP resent successfully."}
+    except Exception as e:
+        raise e
 
 
 @router.post("/forgot-password")

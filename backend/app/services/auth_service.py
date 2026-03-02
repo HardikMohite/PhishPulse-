@@ -163,28 +163,31 @@ def verify_otp(session_id: str, code: str, db: Session) -> User:
 def resend_otp(session_id: str) -> None:
     """
     Resend OTP for session-based registration. Max 2 resends within session window.
+    Also supports resend for existing DB users (login 2FA flow) by user ID or email.
     """
+    # ── Try session-based (registration flow) first ──────────────────────────
     session = session_manager.get_session(session_id)
-    if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Registration session expired or not found. Please register again.")
+    if session:
+        new_otp = session_manager.generate_new_otp(session_id)
+        if not new_otp:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to generate new OTP.")
+        if hasattr(settings, 'BREVO_API_KEY') and settings.BREVO_API_KEY:
+            try:
+                from app.utils.email_brevo import send_otp_email
+                send_otp_email(session.email, new_otp, session.name)
+                print(f"[OTP RESENT via Brevo] To: {session.email} | Code: {new_otp}")
+            except Exception as e:
+                print(f"[OTP ERROR] {e}")
+                print(f"[OTP - FALLBACK] Email: {session.email} | Code: {new_otp}")
+        else:
+            print(f"[OTP - DEVELOPMENT MODE] Email: {session.email} | Code: {new_otp}")
+        return
 
-    # Generate new OTP within session
-    new_otp = session_manager.generate_new_otp(session_id)
-    if not new_otp:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to generate new OTP.")
-
-    # Send OTP via Email
-    if hasattr(settings, 'BREVO_API_KEY') and settings.BREVO_API_KEY:
-        try:
-            from app.utils.email_brevo import send_otp_email
-            send_otp_email(session.email, new_otp, session.name)
-            print(f"[OTP RESENT via Brevo] To: {session.email} | Code: {new_otp}")
-        except Exception as e:
-            print(f"[OTP ERROR] {e}")
-            print(f"[OTP - FALLBACK] Email: {session.email} | Code: {new_otp}")
-    else:
-        # Development mode: print to console
-        print(f"[OTP - DEVELOPMENT MODE] Email: {session.email} | Code: {new_otp}")
+    # ── No session found → raise clear error ─────────────────────────────────
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Registration session expired or not found. Please register again."
+    )
 
 
 def forgot_password(email: str, db: Session) -> None:

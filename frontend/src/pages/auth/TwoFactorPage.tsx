@@ -1,35 +1,39 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { verifyOtp, resendOtp } from "@/services/authService";
 import CustomShield from "@/components/CustomShield";
 
-// Check what's being imported - we need to match these exact names
-// If you see errors about missing exports, tell me the exact names
-
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, delay: i * 0.08, ease: "easeOut" },
+    transition: { duration: 0.5, delay: i * 0.08 },
   }),
 };
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
-const OTP_EXPIRY = 5 * 60; // 5 minutes in seconds
+const OTP_EXPIRY = 5 * 60;
 
 export default function TwoFactorPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Support both sessionId (new registration) and userId (legacy/future login 2FA)
-  const stateData = location.state as { sessionId?: string; userId?: string; phone?: string; email?: string; from: string } || {};
+
+  const stateData = (location.state as {
+    sessionId?: string;
+    userId?: string;
+    phone?: string;
+    email?: string;
+    from?: string;
+  }) || {};
   const { sessionId, userId, phone, email, from } = stateData;
-  
-  // Use sessionId for new registrations, fall back to userId if present
+
   const identifierId = sessionId || userId;
+  const isRegistration = from === "register";
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [loading, setLoading] = useState(false);
@@ -37,22 +41,33 @@ export default function TwoFactorPage() {
   const [resendTimer, setResendTimer] = useState(RESEND_COOLDOWN);
   const [expiryTimer, setExpiryTimer] = useState(OTP_EXPIRY);
   const [resending, setResending] = useState(false);
-
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Resend cooldown timer
   useEffect(() => {
-    if (resendTimer <= 0) return;
-    const t = setInterval(() => setResendTimer((v) => v - 1), 1000);
-    return () => clearInterval(t);
-  }, [resendTimer]);
+    if (!identifierId && !email) {
+      navigate(isRegistration ? "/auth/register" : "/auth/login", { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // OTP expiry timer
+  // Resend cooldown timer — only for registration
   useEffect(() => {
-    if (expiryTimer <= 0) return;
-    const t = setInterval(() => setExpiryTimer((v) => v - 1), 1000);
+    if (!isRegistration) return;
+    const t = setInterval(() => setResendTimer((v) => {
+      if (v <= 1) { clearInterval(t); return 0; }
+      return v - 1;
+    }), 1000);
     return () => clearInterval(t);
-  }, [expiryTimer]);
+  }, [isRegistration]);
+
+  // OTP expiry timer — always runs
+  useEffect(() => {
+    const t = setInterval(() => setExpiryTimer((v) => {
+      if (v <= 1) { clearInterval(t); return 0; }
+      return v - 1;
+    }), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
@@ -65,9 +80,7 @@ export default function TwoFactorPage() {
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !otp[index] && index > 0) inputRefs.current[index - 1]?.focus();
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -83,15 +96,14 @@ export default function TwoFactorPage() {
     const code = otp.join("");
     if (code.length < OTP_LENGTH) return setError("Please enter the complete 6-digit code.");
     if (expiryTimer <= 0) return setError("OTP has expired. Please request a new one.");
-    if (!identifierId) return setError("Session expired. Please register again.");
+    if (!identifierId) return setError("Session expired. Please try again.");
     setError("");
     setLoading(true);
     try {
       await verifyOtp({ userId: identifierId, code });
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
-      else setError("Invalid OTP. Please try again.");
+      setError(err instanceof Error ? err.message : "Invalid OTP. Please try again.");
       setOtp(Array(OTP_LENGTH).fill(""));
       inputRefs.current[0]?.focus();
     } finally {
@@ -100,8 +112,7 @@ export default function TwoFactorPage() {
   };
 
   const handleResend = async () => {
-    if (resendTimer > 0) return;
-    if (!identifierId) return setError("Session expired. Please register again.");
+    if (resendTimer > 0 || !identifierId) return;
     setResending(true);
     setError("");
     try {
@@ -110,23 +121,23 @@ export default function TwoFactorPage() {
       setExpiryTimer(OTP_EXPIRY);
       setOtp(Array(OTP_LENGTH).fill(""));
       inputRefs.current[0]?.focus();
-    } catch {
-      setError("Failed to resend OTP. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to resend OTP. Please try again.");
     } finally {
       setResending(false);
     }
   };
 
-  const maskedContact = email 
-    ? email.replace(/(.{2})(.*)(@.*)/, "$1•••••$3")
-    : phone 
-    ? phone.replace(/(\d{2})\d+(\d{2})/, "$1•••••$2")
+  const maskedContact = email
+    ? email.replace(/(.{2})(.*)(@.*)/, "$1•••$3")
+    : phone
+    ? phone.replace(/(\d{2})\d+(\d{2})/, "$1•••$2")
     : "your email";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "#0a0a0f" }}>
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-3 mb-8">
-        <CustomShield size={36} className="text-cyan-400" strokeWidth={2} />
+        <CustomShield size={36} className="text-cyan-400" />
         <span className="text-3xl font-bold tracking-wide">
           <span className="text-white">Phish</span>
           <span className="text-cyan-400">Pulse</span>
@@ -142,8 +153,6 @@ export default function TwoFactorPage() {
         <p className="text-sm mb-1" style={{ color: "#64748b" }}>
           Enter the 6-digit code sent to <span style={{ color: "#06b6d4" }}>{maskedContact}</span>
         </p>
-
-        {/* Expiry timer */}
         <p className="text-xs mb-6" style={{ color: expiryTimer < 60 ? "#ef4444" : "#475569" }}>
           Code expires in {formatTime(expiryTimer)}
         </p>
@@ -155,14 +164,12 @@ export default function TwoFactorPage() {
           </div>
         )}
 
-        {/* OTP inputs */}
         <div className="flex gap-3 justify-center mb-6" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
               ref={(el) => { inputRefs.current[i] = el; }}
-              type="text" inputMode="numeric" maxLength={1}
-              value={digit}
+              type="text" inputMode="numeric" maxLength={1} value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
               className="w-12 h-14 text-center text-xl font-bold text-white rounded-lg outline-none transition-all"
@@ -177,39 +184,54 @@ export default function TwoFactorPage() {
           ))}
         </div>
 
-        {/* Verify button */}
         <motion.button
           onClick={handleVerify} disabled={loading}
           className="w-full py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2"
-          style={{ background: "transparent", border: "2px solid #06b6d4", boxShadow: "0 0 20px rgba(6,182,212,0.3)", cursor: "pointer" }}
-          whileHover={{ boxShadow: "0 0 30px rgba(6,182,212,0.5)", scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
+          style={{
+            background: "transparent",
+            border: "2px solid #06b6d4",
+            boxShadow: "0 0 20px rgba(6,182,212,0.3)",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1,
+          }}
+          whileHover={!loading ? { boxShadow: "0 0 30px rgba(6,182,212,0.5)", scale: 1.01 } : {}}
+          whileTap={!loading ? { scale: 0.99 } : {}}
         >
           {loading && <Loader2 size={16} className="animate-spin" />}
           {loading ? "Verifying..." : "Verify Code"}
         </motion.button>
 
-        {/* Resend */}
-        <div className="text-center mt-4">
-          {resendTimer > 0 ? (
-            <p className="text-xs" style={{ color: "#475569" }}>
-              Resend code in <span style={{ color: "#06b6d4" }}>{resendTimer}s</span>
-            </p>
-          ) : (
-            <button onClick={handleResend} disabled={resending}
-              className="text-xs flex items-center gap-1 mx-auto"
-              style={{ color: "#06b6d4", cursor: "pointer", background: "none", border: "none" }}>
-              {resending && <Loader2 size={12} className="animate-spin" />}
-              {resending ? "Sending..." : "Resend code"}
-            </button>
-          )}
-        </div>
+        {isRegistration && (
+          <div className="text-center mt-4">
+            {resendTimer > 0
+              ? <p className="text-xs" style={{ color: "#475569" }}>
+                  Resend code in <span style={{ color: "#06b6d4" }}>{resendTimer}s</span>
+                </p>
+              : <button
+                  onClick={handleResend} disabled={resending}
+                  className="text-xs flex items-center gap-1 mx-auto"
+                  style={{ color: "#06b6d4", cursor: "pointer", background: "none", border: "none" }}
+                >
+                  {resending && <Loader2 size={12} className="animate-spin" />}
+                  {resending ? "Sending..." : "Resend code"}
+                </button>
+            }
+          </div>
+        )}
 
-        {from === "register" && (
+        {!isRegistration && (
           <p className="text-center text-xs mt-4" style={{ color: "#475569" }}>
+            Didn't receive a code?{" "}
+            <span className="cursor-pointer" style={{ color: "#06b6d4" }} onClick={() => navigate("/auth/login")}>
+              Try logging in again
+            </span>
+          </p>
+        )}
+
+        {isRegistration && (
+          <p className="text-center text-xs mt-2" style={{ color: "#475569" }}>
             Wrong email?{" "}
-            <span className="cursor-pointer" style={{ color: "#06b6d4" }}
-              onClick={() => navigate("/auth/register")}>
+            <span className="cursor-pointer" style={{ color: "#06b6d4" }} onClick={() => navigate("/auth/register")}>
               Go back
             </span>
           </p>
