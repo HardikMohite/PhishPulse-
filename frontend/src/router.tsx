@@ -7,11 +7,12 @@ import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
 import CTFPage from "@/pages/ctf/CTFPage";
 import LeaderboardPage from "@/pages/leaderboard/LeaderboardPage";
+import HubPage from "@/pages/HubPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/auth/login" replace />,
+    element: <HubPage />,
   },
   {
     path: "/auth/login",

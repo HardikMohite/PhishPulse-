@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Clock, Brain, ShieldCheck } from "lucide-react";
+import { Clock, Brain, ShieldCheck } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import CustomShield from "@/components/CustomShield";
 
 // Dynamic vault count — update this as vaults are added
 const VAULT_COUNT = 5;
@@ -186,15 +187,8 @@ export default function HubPage() {
         animate="visible"
       >
         {/* Logo */}
-        <motion.div
-          variants={fadeUp}
-          className="flex items-center gap-2 mb-10"
-        >
-          <Shield
-            size={28}
-            className="text-cyan-400"
-            strokeWidth={1.8}
-          />
+        <motion.div variants={fadeUp} className="flex items-center gap-2 mb-10">
+          <CustomShield size={32} className="text-cyan-400" style={{ filter: "drop-shadow(0 0 8px #06b6d4)" }} />
           <span className="text-2xl font-semibold tracking-wide">
             <span style={{ color: "#f8fafc" }}>Phish</span>
             <span style={{ color: "#06b6d4" }}>Pulse</span>
