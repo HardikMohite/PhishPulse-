@@ -4,7 +4,7 @@ import api from './api';
 const AUTH_ENDPOINTS = {
   REGISTER: 'auth/register',
   LOGIN: 'auth/login',
-  VERIFY_2FA: 'auth/verify-2fa',
+  VERIFY_2FA: 'auth/verify-otp',
   RESEND_OTP: 'auth/resend-otp',
   LOGOUT: 'auth/logout',
   ME: 'auth/me',
@@ -26,7 +26,7 @@ export interface LoginData {
 }
 
 export interface Verify2FAData {
-  email: string;
+  user_id: string;
   code: string;
 }
 
@@ -50,17 +50,22 @@ export const login = async (data: LoginData) => {
 };
 
 export const verify2FA = async (data: Verify2FAData) => {
-  const response = await api.post(AUTH_ENDPOINTS.VERIFY_2FA, data);
+  const response = await api.post(AUTH_ENDPOINTS.VERIFY_2FA, {
+    user_id: data.user_id,
+    code: data.code
+  });
+
   if (response.data.access_token) {
-    localStorage.setItem('token', response.data.access_token);
+    localStorage.setItem("token", response.data.access_token);
   }
+
   return response.data;
 };
 
 export const verifyOtp = verify2FA;
 
-export const resendOtp = async (email: string) => {
-  const response = await api.post(AUTH_ENDPOINTS.RESEND_OTP, { email });
+export const resendOtp = async (user_id: string) => {
+  const response = await api.post(AUTH_ENDPOINTS.RESEND_OTP, { user_id });
   return response.data;
 };
 

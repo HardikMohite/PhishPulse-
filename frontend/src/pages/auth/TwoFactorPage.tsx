@@ -100,13 +100,21 @@ export default function TwoFactorPage() {
     setError("");
     setLoading(true);
     try {
-      await verifyOtp({ userId: identifierId, code });
+      await verifyOtp({
+  user_id: identifierId!,
+  code: code
+});
       navigate("/dashboard", { replace: true });
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Invalid OTP. Please try again.");
-      setOtp(Array(OTP_LENGTH).fill(""));
-      inputRefs.current[0]?.focus();
-    } finally {
+    } catch (err: any) {
+  const message =
+    err?.response?.data?.detail ||
+    err?.response?.data?.message ||
+    "Invalid OTP. Please try again.";
+
+  setError(message);
+  setOtp(Array(OTP_LENGTH).fill(""));
+  inputRefs.current[0]?.focus();
+} finally {
       setLoading(false);
     }
   };
@@ -116,7 +124,7 @@ export default function TwoFactorPage() {
     setResending(true);
     setError("");
     try {
-      await resendOtp({ userId: identifierId });
+      await resendOtp(identifierId!);
       setResendTimer(RESEND_COOLDOWN);
       setExpiryTimer(OTP_EXPIRY);
       setOtp(Array(OTP_LENGTH).fill(""));
