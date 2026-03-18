@@ -1,10 +1,10 @@
 import api from './api';
 
-// Auth API endpoints
+// Auth API endpoints — must match backend /api/auth/...
 const AUTH_ENDPOINTS = {
   REGISTER: 'auth/register',
   LOGIN: 'auth/login',
-  VERIFY_2FA: 'auth/verify-2fa',
+  VERIFY_OTP: 'auth/verify-otp',       // Fixed: was verify-2fa, backend has verify-otp
   RESEND_OTP: 'auth/resend-otp',
   LOGOUT: 'auth/logout',
   ME: 'auth/me',
@@ -25,9 +25,13 @@ export interface LoginData {
   rememberMe?: boolean;
 }
 
-export interface Verify2FAData {
-  email: string;
+export interface VerifyOtpData {
+  userId: string;   // accepts sessionId from registration flow
   code: string;
+}
+
+export interface ResendOtpData {
+  userId: string;   // accepts sessionId from registration flow
 }
 
 export interface ForgotPasswordData {
@@ -41,26 +45,33 @@ export interface ResetPasswordData {
 
 export const register = async (data: RegisterData) => {
   const response = await api.post(AUTH_ENDPOINTS.REGISTER, data);
-  return response.data;
+  return response.data; // { sessionId, message }
 };
 
 export const login = async (data: LoginData) => {
-  const response = await api.post(AUTH_ENDPOINTS.LOGIN, data);
+  const response = await api.post(AUTH_ENDPOINTS.LOGIN, {
+    email: data.email,
+    password: data.password,
+    remember_me: data.rememberMe ?? false,
+  });
+  return response.data; // { user, userId, message }
+};
+
+export const verifyOtp = async (data: VerifyOtpData) => {
+  const response = await api.post(AUTH_ENDPOINTS.VERIFY_OTP, {
+    user_id: data.userId,   // backend expects user_id (snake_case)
+    code: data.code,
+  });
   return response.data;
 };
 
-export const verify2FA = async (data: Verify2FAData) => {
-  const response = await api.post(AUTH_ENDPOINTS.VERIFY_2FA, data);
-  if (response.data.access_token) {
-    localStorage.setItem('token', response.data.access_token);
-  }
-  return response.data;
-};
+// Alias for backward compatibility
+export const verify2FA = verifyOtp;
 
-export const verifyOtp = verify2FA;
-
-export const resendOtp = async (email: string) => {
-  const response = await api.post(AUTH_ENDPOINTS.RESEND_OTP, { email });
+export const resendOtp = async (data: ResendOtpData) => {
+  const response = await api.post(AUTH_ENDPOINTS.RESEND_OTP, {
+    user_id: data.userId,   // backend expects user_id (snake_case)
+  });
   return response.data;
 };
 
@@ -79,13 +90,9 @@ export const getMe = async () => {
 
 export const checkAuth = async () => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return { authenticated: false, user: null };
-    }
-    const user = await getMe();
-    return { authenticated: true, user };
-  } catch (error) {
+    const response = await getMe();
+    return { authenticated: true, user: response };
+  } catch {
     return { authenticated: false, user: null };
   }
 };
