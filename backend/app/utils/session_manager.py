@@ -158,6 +158,33 @@ class RegistrationSessionManager:
         print(f"[OTP RESENT] Session: {session_id} | Resends: {session.resend_count}/{self.MAX_RESENDS}")
         return True, None
     
+    def increment_attempts(self, session_id: str) -> int:
+        """Increment the failed OTP attempt counter. Returns the new attempt count."""
+        session = self._sessions.get(session_id)
+        if session:
+            session.attempts += 1
+            print(f"[OTP FAILED] Session: {session_id} | Attempts: {session.attempts}/{self.MAX_OTP_ATTEMPTS}")
+            return session.attempts
+        return 0
+
+    def generate_new_otp(self, session_id: str) -> str | None:
+        """Generate and store a new OTP for a session (used by resend). Returns new OTP or None on failure."""
+        import random, string
+        session = self.get_session(session_id)
+        if not session:
+            return None
+        if session.resend_count >= self.MAX_RESENDS:
+            self.delete_session(session_id)
+            return None
+        from datetime import datetime, timedelta, timezone
+        new_otp = "".join(random.choices(string.digits, k=6))
+        session.otp_code = new_otp
+        session.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=self.OTP_EXPIRY_MINUTES)
+        session.resend_count += 1
+        session.attempts = 0  # reset attempts on resend
+        print(f"[OTP REGENERATED] Session: {session_id} | Resends: {session.resend_count}/{self.MAX_RESENDS}")
+        return new_otp
+
     def delete_session(self, session_id: str) -> None:
         """Delete a session (cleanup)."""
         if session_id in self._sessions:

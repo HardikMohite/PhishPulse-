@@ -1,17 +1,31 @@
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
+import { getMe } from "@/services/authService";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const store = useAuthStore() as any;
-  const isLoading: boolean = store.isLoading;
-  const isAuthenticated: boolean = !!(store.isAuthenticated ?? store.isAuth ?? store.authenticated ?? store.user ?? store.token);
+  const { user, setUser } = useAuthStore();
+  // Only run a verification check when there is no user in the store yet
+  const [checking, setChecking] = useState(!user);
 
-  if (isLoading) {
-    // Show loading spinner while checking authentication
+  useEffect(() => {
+    if (!user) {
+      // No cached user — check if the httpOnly cookie is still valid
+      getMe()
+        .then((data) => setUser(data))
+        .catch(() => setUser(null))
+        .finally(() => setChecking(false));
+    } else {
+      setChecking(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#0a0a0f" }}>
         <div className="flex flex-col items-center gap-4">
@@ -22,8 +36,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/auth/login" replace />;
+  if (!user) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

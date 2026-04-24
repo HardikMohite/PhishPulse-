@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import TwoFactorPage from "@/pages/auth/TwoFactorPage";
@@ -8,6 +9,7 @@ import DashboardPage from "@/pages/dashboard/DashboardPage";
 import CTFPage from "@/pages/ctf/CTFPage";
 import LeaderboardPage from "@/pages/leaderboard/LeaderboardPage";
 import HubPage from "@/pages/HubPage";
+import VaultLevelsPage from "@/pages/vault-realm/VaultLevelsPage";
 
 const router = createBrowserRouter([
   {
@@ -36,19 +38,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    element: <DashboardPage />,
-  },
-  {
-    path: "/ctf",
-    element: <CTFPage />,
-  },
-  {
-    path: "/leaderboard",
-    element: <LeaderboardPage />,
+    element: <ProtectedRoute><DashboardPage /></ProtectedRoute>,
   },
   {
     path: "/vault-realm",
-    element: <Navigate to="/dashboard" replace />,
+    element: <ProtectedRoute><VaultLevelsPage /></ProtectedRoute>,
+  },
+  {
+    path: "/ctf",
+    element: <ProtectedRoute><CTFPage /></ProtectedRoute>,
+  },
+  {
+    path: "/leaderboard",
+    element: <ProtectedRoute><LeaderboardPage /></ProtectedRoute>,
   },
   {
     path: "/incident-gate",
@@ -76,7 +78,7 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Navigate to="/auth/login" replace />,
+    element: <Navigate to="/" replace />,
   },
 ]);
 

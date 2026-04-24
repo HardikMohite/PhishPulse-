@@ -81,6 +81,7 @@ class UserResponse(BaseModel):
     xp: int
     coins: int
     streak: int
+    is_verified: bool
 
     class Config:
         from_attributes = True

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { verifyOtp, resendOtp } from "@/services/authService";
+import { useAuthStore } from "@/store/authStore";
 import CustomShield from "@/components/CustomShield";
 
 const fadeUp: Variants = {
@@ -22,6 +23,7 @@ const OTP_EXPIRY = 5 * 60;
 export default function TwoFactorPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setUser } = useAuthStore();
 
   const stateData = (location.state as {
     sessionId?: string;
@@ -100,7 +102,9 @@ export default function TwoFactorPage() {
     setError("");
     setLoading(true);
     try {
-      await verifyOtp({ userId: identifierId, code });
+      const data = await verifyOtp({ userId: identifierId, code });
+      // Populate the auth store so ProtectedRoute doesn't need an extra getMe() round-trip
+      if (data?.user) setUser(data.user);
       navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Invalid OTP. Please try again.");

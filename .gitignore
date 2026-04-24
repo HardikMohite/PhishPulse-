@@ -3,15 +3,27 @@
 # Fullstack: React + FastAPI
 # ===============================
 
-node_modules/
+# ---------- ARCHIVES ----------
+*.zip
+*.ZIP
+*.rar
+*.7z
+*.tar
+*.gz
+
 # ---------- FRONTEND (React/Vite) ----------
+node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/build/
 frontend/.vite/
+
+# Environment files
 frontend/.env
 frontend/.env.local
 frontend/.env.*.local
+
+# Logs
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
@@ -20,31 +32,52 @@ frontend/pnpm-debug.log*
 # ---------- BACKEND (Python/FastAPI) ----------
 backend/venv/
 backend/.env
+backend/.env.*
+backend/phishpulse.db
+backend/*.db
+backend/*.sqlite3
+
+# Python cache
 backend/__pycache__/
-backend/*.pyc
-backend/*.pyo
-backend/*.pyd
+backend/**/*.pyc
+backend/**/*.pyo
+backend/**/*.pyd
+backend/**/*.so
+
+# Testing / Tool caches
 backend/.pytest_cache/
 backend/.mypy_cache/
 backend/.coverage
+backend/htmlcov/
+
+# Logs
 backend/*.log
-backend/phishpulse.db
 
-# ---------- OS FILES ----------
-.DS_Store
-Thumbs.db
+# ---------- GLOBAL PYTHON ----------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
 
-# ---------- IDE ----------
+# ---------- IDE / EDITORS ----------
 .vscode/*
 !.vscode/settings.json
 !.vscode/launch.json
 .idea/
+*.suo
+*.user
+
+# ---------- OS FILES ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- TEMP ----------
+*.tmp
+*.temp
+*.swp
+*.bak
 
 # ---------- GIT ----------
-.gitignore
 .gitkeep
-
-# ---------- MISC ----------
-*.log
-*.tmp
-*.swp

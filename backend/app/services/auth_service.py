@@ -131,9 +131,9 @@ def verify_otp(session_id: str, code: str, db: Session) -> User:
 
     # Verify OTP code
     if session.otp_code != code:
-        # Increment failed attempts
-        session_manager.increment_attempts(session_id)
-        remaining = 3 - session.attempts
+        # Increment first, then compute remaining from the updated count
+        new_attempts = session_manager.increment_attempts(session_id)
+        remaining = 3 - new_attempts
         if remaining <= 0:
             session_manager.delete_session(session_id)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Too many failed attempts. Please register again.")

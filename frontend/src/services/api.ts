@@ -11,30 +11,17 @@ const api = axios.create({
   timeout: 10000,
 });
 
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor
+// Response interceptor — auth uses httpOnly cookies, no token header needed
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
       if (!currentPath.startsWith('/auth')) {
-        localStorage.removeItem('token');
         window.location.href = '/auth/login';
       }
     }
-    
+
     const message = error.response?.data?.detail || error.response?.data?.message || error.message || 'An error occurred';
     return Promise.reject(new Error(message));
   }
