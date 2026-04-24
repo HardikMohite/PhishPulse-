@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Loader2, ArrowLeft, MailCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Mail, ArrowLeft, ArrowRight, MailCheck } from "lucide-react";
 import { forgotPassword } from "@/services/authService";
 import CustomShield from "@/components/CustomShield";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, delay: i * 0.08 },
-  }),
-};
+const GridBg = () => (
+  <div
+    className="absolute inset-0 pointer-events-none"
+    style={{
+      backgroundImage:
+        "linear-gradient(rgba(6,182,212,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.07) 1px, transparent 1px)",
+      backgroundSize: "60px 60px",
+    }}
+  />
+);
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -28,104 +30,213 @@ export default function ForgotPasswordPage() {
       await forgotPassword({ email });
       setSent(true);
     } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
-      else setError("Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "#0a0a0f" }}>
-      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-3 mb-8">
-        <CustomShield size={36} className="text-cyan-400" strokeWidth={2} />
-        <span className="text-3xl font-bold tracking-wide">
-          <span className="text-white">Phish</span>
-          <span className="text-cyan-400">Pulse</span>
-        </span>
-      </motion.div>
-
+    <div className="min-h-screen flex" style={{ background: "#0b0e13" }}>
+      {/* LEFT PANEL */}
       <motion.div
-        custom={1} variants={fadeUp} initial="hidden" animate="visible"
-        className="w-full max-w-md rounded-xl p-8"
-        style={{ background: "rgba(6,182,212,0.03)", border: "1px solid rgba(6,182,212,0.2)", boxShadow: "0 0 40px rgba(6,182,212,0.05)" }}
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="hidden lg:flex flex-col justify-center px-16 relative overflow-hidden"
+        style={{ width: "52%", background: "#0d1117" }}
       >
-        {!sent ? (
-          <>
-            <Link to="/auth/login" className="flex items-center gap-1 text-xs mb-6 w-fit" style={{ color: "#64748b" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#06b6d4")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}>
-              <ArrowLeft size={13} /> Back to login
-            </Link>
-
-            <h1 className="text-2xl font-bold text-white mb-1">Reset password</h1>
-            <p className="text-sm mb-6" style={{ color: "#64748b" }}>
-              Enter your email and we'll send you a reset link.
-            </p>
-
-            {error && (
-              <div className="mb-4 px-4 py-3 rounded-lg text-sm"
-                style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#f87171" }}>
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium" style={{ color: "#94a3b8" }}>Email address</label>
-                <input
-                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com" required
-                  className="px-4 py-3 rounded-lg text-sm text-white outline-none"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(6,182,212,0.2)", caretColor: "#06b6d4" }}
-                  onFocus={(e) => (e.target.style.borderColor = "rgba(6,182,212,0.6)")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(6,182,212,0.2)")}
-                />
-              </div>
-
-              <motion.button
-                type="submit" disabled={loading}
-                className="mt-2 py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2"
-                style={{ background: "transparent", border: "2px solid #06b6d4", boxShadow: "0 0 20px rgba(6,182,212,0.3)", cursor: "pointer" }}
-                whileHover={{ boxShadow: "0 0 30px rgba(6,182,212,0.5)", scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                {loading && <Loader2 size={16} className="animate-spin" />}
-                {loading ? "Sending..." : "Send Reset Link"}
-              </motion.button>
-            </form>
-          </>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center text-center gap-4 py-4"
-          >
-            <div className="p-4 rounded-full" style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)" }}>
-              <MailCheck size={32} style={{ color: "#06b6d4" }} strokeWidth={1.5} />
+        <GridBg />
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            width: 480,
+            height: 480,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(6,182,212,0.12) 0%, transparent 70%)",
+            top: "50%",
+            left: "30%",
+            transform: "translate(-50%, -50%)",
+          }}
+        />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-16">
+            <div className="relative">
+              <div className="absolute inset-0 bg-cyan-400/20 blur-lg rounded-full" />
+              <CustomShield className="text-cyan-400 relative z-10" size={34} strokeWidth={1.8} />
             </div>
-            <h2 className="text-xl font-bold text-white">Check your inbox</h2>
-            <p className="text-sm leading-relaxed" style={{ color: "#64748b" }}>
-              A password reset link has been sent to{" "}
-              <span style={{ color: "#06b6d4" }}>{email}</span>.
-              Check your inbox and follow the instructions.
-            </p>
-            <p className="text-xs" style={{ color: "#475569" }}>
-              Didn't receive it?{" "}
-              <span className="cursor-pointer" style={{ color: "#06b6d4" }} onClick={() => setSent(false)}>
-                Try again
-              </span>
-            </p>
-            <Link to="/auth/login"
-              className="mt-2 text-xs flex items-center gap-1"
-              style={{ color: "#64748b" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#06b6d4")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}>
-              <ArrowLeft size={13} /> Back to login
-            </Link>
+            <span className="text-xl font-bold text-white tracking-wide">PhishPulse</span>
+          </div>
+
+          {/* Icon animation */}
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="w-20 h-20 rounded-2xl flex items-center justify-center mb-8"
+            style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)" }}
+          >
+            <Mail size={40} className="text-cyan-400" strokeWidth={1.5} />
           </motion.div>
-        )}
+
+          <h1
+            className="text-5xl font-extrabold text-white leading-tight mb-4"
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            Forgot your
+            <br />
+            <span style={{ color: "#06b6d4" }}>password?</span>
+          </h1>
+          <p className="text-slate-400 text-base leading-relaxed max-w-sm">
+            No worries — enter your email address and we'll send you a secure link to reset your password instantly.
+          </p>
+        </div>
       </motion.div>
+
+      {/* RIGHT PANEL */}
+      <div
+        className="flex-1 flex items-center justify-center px-6 py-12"
+        style={{ background: "#0b0e13" }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-sm"
+        >
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2 mb-8 lg:hidden">
+            <CustomShield className="text-cyan-400" size={28} strokeWidth={1.8} />
+            <span className="text-lg font-bold text-white">PhishPulse</span>
+          </div>
+
+          <Link
+            to="/auth/login"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-8"
+          >
+            <ArrowLeft size={13} /> Back to sign in
+          </Link>
+
+          <AnimatePresence mode="wait">
+            {!sent ? (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                  style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)" }}
+                >
+                  <Mail size={28} className="text-cyan-400" strokeWidth={1.5} />
+                </div>
+
+                <h2 className="text-3xl font-bold text-white mb-1">Reset password</h2>
+                <p className="text-slate-500 text-sm mb-8">
+                  Enter your email and we'll send you a reset link.
+                </p>
+
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      className="mb-5 px-4 py-3 rounded-lg text-sm flex items-start gap-2"
+                      style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}
+                    >
+                      <span className="mt-0.5">⚠</span>
+                      <span>{error}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                      Email address
+                    </label>
+                    <div className="relative">
+                      <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
+                      <input
+                        type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@company.com" required
+                        className="w-full pl-10 pr-4 py-3 rounded-lg text-sm text-white outline-none transition-all duration-200 placeholder:text-slate-700"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          caretColor: "#06b6d4",
+                        }}
+                        onFocus={(e) => (e.target.style.borderColor = "rgba(6,182,212,0.5)")}
+                        onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
+                      />
+                    </div>
+                  </div>
+
+                  <motion.button
+                    type="submit" disabled={loading}
+                    whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                    className="py-3.5 rounded-lg text-sm font-semibold text-black flex items-center justify-center gap-2 transition-all"
+                    style={{
+                      background: loading ? "rgba(6,182,212,0.5)" : "#06b6d4",
+                      boxShadow: loading ? "none" : "0 0 32px rgba(6,182,212,0.35)",
+                    }}
+                  >
+                    {loading
+                      ? <><Loader2 size={15} className="animate-spin" /> Sending...</>
+                      : <>Send Reset Link <ArrowRight size={15} /></>}
+                  </motion.button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex flex-col items-start"
+              >
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                  style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)" }}
+                >
+                  <MailCheck size={28} className="text-green-400" strokeWidth={1.5} />
+                </motion.div>
+
+                <h2 className="text-3xl font-bold text-white mb-2">Check your inbox</h2>
+                <p className="text-slate-500 text-sm mb-2 leading-relaxed">
+                  We sent a password reset link to
+                </p>
+                <p className="text-cyan-400 text-sm font-medium mb-8">{email}</p>
+
+                <div
+                  className="w-full px-4 py-3.5 rounded-lg text-sm text-slate-400 mb-6"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  Didn't receive it?{" "}
+                  <button
+                    onClick={() => setSent(false)}
+                    className="text-cyan-500 hover:text-cyan-300 transition-colors"
+                  >
+                    Try again
+                  </button>{" "}
+                  or check your spam folder.
+                </div>
+
+                <Link
+                  to="/auth/login"
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  <ArrowLeft size={13} /> Back to sign in
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </div>
   );
 }
