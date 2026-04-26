@@ -1,6 +1,5 @@
 """
 Email utility for sending emails via Brevo (formerly Sendinblue) API.
-Falls back to console logging if Brevo API key is not configured.
 """
 import logging
 import requests
@@ -18,293 +17,348 @@ def send_email_brevo(
     html_body: str,
     text_body: Optional[str] = None
 ) -> bool:
-    """
-    Send an email using Brevo API.
-    
-    Args:
-        to_email: Recipient email address
-        to_name: Recipient name
-        subject: Email subject
-        html_body: HTML version of email body
-        text_body: Plain text version (optional)
-    
-    Returns:
-        True if sent successfully, False on error
-    """
-    
-    # Check if Brevo is configured
-    if not hasattr(settings, 'BREVO_API_KEY') or not settings.BREVO_API_KEY:
+    if not getattr(settings, 'BREVO_API_KEY', None):
         logger.warning("Brevo API key not configured. Logging email to console.")
-        logger.info("=" * 80)
-        logger.info("📧 EMAIL (BREVO NOT CONFIGURED - LOGGING TO CONSOLE)")
-        logger.info(f"To: {to_name} <{to_email}>")
-        logger.info(f"Subject: {subject}")
-        logger.info("-" * 80)
-        logger.info(html_body if html_body else text_body)
-        logger.info("=" * 80)
+        logger.info(text_body or "[html only]")
         return True
-    
-    # Prepare Brevo API request
-    url = "https://api.brevo.com/v3/smtp/email"
-    
+
+    from_email = getattr(settings, 'FROM_EMAIL', None) or "noreply@phishpulse.com"
+
     headers = {
         "accept": "application/json",
         "api-key": settings.BREVO_API_KEY,
-        "content-type": "application/json"
+        "content-type": "application/json",
     }
-    
     payload = {
-        "sender": {
-            "name": "PhishPulse Security",
-            "email": settings.FROM_EMAIL or "noreply@phishpulse.com"
-        },
-        "to": [
-            {
-                "email": to_email,
-                "name": to_name
-            }
-        ],
+        "sender": {"name": "PhishPulse", "email": from_email},
+        "to": [{"email": to_email, "name": to_name}],
         "subject": subject,
-        "htmlContent": html_body
+        "htmlContent": html_body,
     }
-    
-    # Add text body if provided
     if text_body:
         payload["textContent"] = text_body
-    
-    try:
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
-        
-        if response.status_code == 201:
-            logger.info(f"✅ Email sent successfully to {to_email} via Brevo")
-            return True
-        else:
-            logger.error(f"❌ Brevo API error: {response.status_code} - {response.text}")
-            # Fallback to console logging
-            logger.info("📧 EMAIL (Brevo failed - logging to console)")
-            logger.info(f"To: {to_name} <{to_email}>")
-            logger.info(f"Subject: {subject}")
-            logger.info(html_body if html_body else text_body)
-            return False
-            
-    except Exception as e:
-        logger.error(f"❌ Error sending email via Brevo: {str(e)}")
-        # Fallback to console logging
-        logger.info("📧 EMAIL (Error - logging to console)")
-        logger.info(f"To: {to_name} <{to_email}>")
-        logger.info(f"Subject: {subject}")
-        logger.info(html_body if html_body else text_body)
-        return False
 
+    try:
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            json=payload, headers=headers, timeout=15
+        )
+
+        if response.status_code == 201:
+            logger.info(f"Email sent to {to_email} via Brevo")
+            return True
+
+        error_detail = response.text
+        print(
+            f"\n{'='*60}\n"
+            f"BREVO SEND FAILED\n"
+            f"  HTTP   : {response.status_code}\n"
+            f"  From   : {from_email}\n"
+            f"  To     : {to_email}\n"
+            f"  Error  : {error_detail}\n"
+            f"  Fix    : Verify sender at https://app.brevo.com/senders\n"
+            f"{'='*60}\n"
+        )
+        logger.error(f"Brevo error {response.status_code}: {error_detail}")
+        raise RuntimeError(f"Brevo returned HTTP {response.status_code}: {error_detail}")
+
+    except requests.exceptions.Timeout:
+        raise RuntimeError("Email service timed out. Please try again.")
+    except requests.exceptions.ConnectionError:
+        raise RuntimeError("Cannot reach email service. Check network/firewall.")
+    except RuntimeError:
+        raise
+    except Exception as e:
+        raise RuntimeError(f"Unexpected email error: {e}")
+
+
+# ── Design tokens (matches frontend exactly) ────────────────────────────────
+_BG_OUTER   = "#0b0e13"
+_BG_CARD    = "#0d1117"
+_BG_SECTION = "#0f1420"
+_BORDER     = "#1a2235"
+_CYAN       = "#06b6d4"
+_CYAN_DIM   = "#0e7490"
+_CYAN_BG    = "#071825"
+_RED        = "#ef4444"
+_RED_BG     = "#1a0808"
+_WHITE      = "#f1f5f9"
+_MUTED      = "#8b9ab0"
+_DIM        = "#3d4f66"
+
+# Custom shield SVG inlined — exact same paths as frontend CustomShield.tsx
+# Rendered as a 36x36 inline SVG so email clients show it correctly
+_SHIELD_SVG = (
+    '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" '
+    'xmlns="http://www.w3.org/2000/svg" style="display:block;">'
+    # outline
+    f'<path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" '
+    f'stroke="{_CYAN}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
+    # half fill
+    f'<path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12V2z" fill="{_CYAN}" opacity="0.35"/>'
+    '</svg>'
+)
+
+
+def _wrap(body_rows: str) -> str:
+    """Outer chrome shared by all email templates."""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:{_BG_OUTER};
+             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="background-color:{_BG_OUTER};">
+<tr><td align="center" style="padding:48px 16px;">
+
+  <!-- Card -->
+  <table role="presentation" width="580" cellpadding="0" cellspacing="0"
+         style="max-width:580px;width:100%;background-color:{_BG_CARD};
+                border-radius:16px;border:1px solid {_BORDER};overflow:hidden;">
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <tr>
+      <td style="padding:28px 40px 24px 40px;border-bottom:1px solid {_BORDER};
+                 background-color:{_BG_CARD};">
+        <table role="presentation" cellpadding="0" cellspacing="0">
+          <tr>
+            <!-- Shield icon box -->
+            <td style="padding-right:14px;vertical-align:middle;">
+              <table role="presentation" cellpadding="0" cellspacing="0"
+                     style="width:44px;height:44px;background-color:{_CYAN_BG};
+                            border-radius:10px;border:1px solid {_CYAN_DIM};">
+                <tr>
+                  <td align="center" valign="middle" style="padding:8px;">
+                    {_SHIELD_SVG}
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <!-- Wordmark + tagline -->
+            <td style="vertical-align:middle;">
+              <div style="font-size:20px;font-weight:700;letter-spacing:-0.4px;line-height:1.2;">
+                <span style="color:{_WHITE};">Phish</span><span style="color:{_CYAN};">Pulse</span>
+              </div>
+              <div style="font-size:11px;color:{_MUTED};margin-top:2px;letter-spacing:0.3px;">
+                Cybersecurity Training Platform
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    {body_rows}
+
+    <!-- ── Footer ───────────────────────────────────────────── -->
+    <tr>
+      <td style="padding:22px 40px;border-top:1px solid {_BORDER};
+                 background-color:{_BG_OUTER};">
+        <p style="margin:0 0 4px;font-size:12px;color:{_DIM};text-align:center;">
+          &copy; 2025 PhishPulse &mdash; Cybersecurity Training Platform
+        </p>
+        <p style="margin:0;font-size:11px;color:{_DIM};text-align:center;">
+          This is an automated message. Please do not reply.
+        </p>
+      </td>
+    </tr>
+
+  </table>
+  <!-- /Card -->
+
+</td></tr>
+</table>
+</body>
+</html>"""
+
+
+def _otp_digits(code: str) -> str:
+    """Render each digit in its own cyan box."""
+    cells = ""
+    for d in code:
+        cells += (
+            f'<td style="padding:0 5px;">'
+            f'<table role="presentation" cellpadding="0" cellspacing="0">'
+            f'<tr><td align="center" valign="middle"'
+            f' style="width:46px;height:56px;background-color:{_CYAN_BG};'
+            f'border:1px solid {_CYAN_DIM};border-radius:10px;'
+            f'font-size:30px;font-weight:700;color:{_CYAN};'
+            f'font-family:Courier New,Courier,monospace;letter-spacing:0;">'
+            f'{d}'
+            f'</td></tr></table></td>'
+        )
+    return cells
+
+
+def _expiry_pill(minutes: int) -> str:
+    return (
+        f'<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 30px auto;">'
+        f'<tr><td style="padding:7px 22px;background-color:{_BG_SECTION};'
+        f'border:1px solid {_BORDER};border-radius:999px;">'
+        f'<span style="font-size:13px;color:{_MUTED};">'
+        f'Expires in&nbsp;<strong style="color:{_CYAN};">{minutes} minutes</strong>'
+        f'</span></td></tr></table>'
+    )
+
+
+def _security_notice(msg: str) -> str:
+    return (
+        f'<tr><td style="padding:0 40px 40px 40px;">'
+        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"'
+        f' style="background-color:{_RED_BG};border-radius:10px;border-left:3px solid {_RED};">'
+        f'<tr><td style="padding:14px 18px;">'
+        f'<p style="margin:0;font-size:13px;color:#fca5a5;line-height:1.6;">'
+        f'<strong style="color:{_RED};">Security notice:&nbsp;</strong>{msg}'
+        f'</p></td></tr></table></td></tr>'
+    )
+
+
+# ── send_otp_email — registration verification ──────────────────────────────
 
 def send_otp_email(to_email: str, otp_code: str, to_name: str = None) -> bool:
-    """
-    Send OTP verification email with a nice HTML template.
-    
-    Args:
-        to_email: Recipient email address
-        otp_code: 6-digit OTP code
-        to_name: Recipient name (optional)
-    
-    Returns:
-        True if sent successfully, False on error
-    """
-    
-    # Use email username if name not provided
+    """OTP email for account registration. Expires in 10 minutes."""
     if not to_name:
         to_name = to_email.split('@')[0]
-    
-    subject = "PhishPulse - Your Verification Code"
-    
-    # HTML email template
-    html_body = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhishPulse - Verification Code</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #0a0a0f;">
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td align="center" style="padding: 40px 0;">
-                <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #1a1a1f; border-radius: 12px; overflow: hidden;">
-                    <!-- Header -->
-                    <tr>
-                        <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0.05) 100%);">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
-                                <span style="color: #06b6d4;">🛡️</span> PhishPulse
-                            </h1>
-                            <p style="margin: 10px 0 0 0; color: #64748b; font-size: 14px;">Security Training Platform</p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Content -->
-                    <tr>
-                        <td style="padding: 40px;">
-                            <h2 style="margin: 0 0 20px 0; color: #ffffff; font-size: 24px; font-weight: 600;">
-                                Verification Code
-                            </h2>
-                            <p style="margin: 0 0 30px 0; color: #94a3b8; font-size: 16px; line-height: 1.6;">
-                                Hello <strong style="color: #ffffff;">{to_name}</strong>,
-                            </p>
-                            <p style="margin: 0 0 30px 0; color: #94a3b8; font-size: 16px; line-height: 1.6;">
-                                Your verification code is:
-                            </p>
-                            
-                            <!-- OTP Code Box -->
-                            <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 0 0 30px 0;">
-                                <tr>
-                                    <td align="center" style="padding: 30px; background-color: rgba(6,182,212,0.1); border: 2px solid #06b6d4; border-radius: 12px;">
-                                        <span style="font-size: 48px; font-weight: bold; color: #06b6d4; letter-spacing: 8px; font-family: 'Courier New', monospace;">
-                                            {otp_code}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <p style="margin: 0 0 20px 0; color: #94a3b8; font-size: 14px; line-height: 1.6;">
-                                This code will expire in <strong style="color: #06b6d4;">5 minutes</strong>.
-                            </p>
-                            <p style="margin: 0 0 30px 0; color: #94a3b8; font-size: 14px; line-height: 1.6;">
-                                If you didn't request this code, please ignore this email or contact support if you have concerns.
-                            </p>
-                            
-                            <!-- Security Notice -->
-                            <div style="padding: 20px; background-color: rgba(220,38,38,0.1); border-left: 4px solid #dc2626; border-radius: 8px;">
-                                <p style="margin: 0; color: #f87171; font-size: 14px; line-height: 1.6;">
-                                    <strong>🔒 Security Notice:</strong> Never share this code with anyone. PhishPulse will never ask for your verification code via phone or email.
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="padding: 30px 40px; text-align: center; background-color: rgba(6,182,212,0.05); border-top: 1px solid rgba(6,182,212,0.2);">
-                            <p style="margin: 0 0 10px 0; color: #64748b; font-size: 12px;">
-                                PhishPulse - Cybersecurity Training Platform
-                            </p>
-                            <p style="margin: 0; color: #475569; font-size: 12px;">
-                                This is an automated message, please do not reply.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
+
+    subject = "PhishPulse \u2014 Your Verification Code"
+
+    body = f"""
+    <tr>
+      <td style="padding:40px 40px 28px 40px;">
+        <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;
+                   color:{_WHITE};letter-spacing:-0.3px;">
+          Verify your account
+        </h1>
+        <p style="margin:0 0 28px;font-size:15px;color:{_MUTED};line-height:1.7;">
+          Hi <strong style="color:{_WHITE};">{to_name}</strong>,
+          enter the code below to complete your registration:
+        </p>
+        <!-- OTP digits -->
+        <table role="presentation" cellpadding="0" cellspacing="0"
+               style="margin:0 auto 24px auto;">
+          <tr>{_otp_digits(otp_code)}</tr>
+        </table>
+        {_expiry_pill(10)}
+        <p style="margin:0;font-size:14px;color:{_MUTED};line-height:1.6;">
+          If you did not create a PhishPulse account, you can safely ignore this email.
+        </p>
+      </td>
+    </tr>
+    {_security_notice("Never share this code with anyone. PhishPulse will never ask for your verification code.")}
     """
-    
-    # Plain text version
-    text_body = f"""
-PhishPulse - Verification Code
 
-Hello {to_name},
+    text = (
+        f"PhishPulse \u2014 Verify your account\n\n"
+        f"Hi {to_name},\n\nYour verification code: {otp_code}\n\n"
+        f"Expires in 10 minutes.\n\n"
+        f"If you did not sign up, ignore this email.\n\n"
+        f"---\nPhishPulse \u2014 Cybersecurity Training Platform"
+    )
+    return send_email_brevo(to_email, to_name, subject, _wrap(body), text)
 
-Your verification code is: {otp_code}
 
-This code will expire in 5 minutes.
+# ── send_reset_otp_email — password reset OTP ───────────────────────────────
 
-If you didn't request this code, please ignore this email.
+def send_reset_otp_email(to_email: str, otp_code: str, to_name: str = None) -> bool:
+    """OTP email for password reset. Expires in 10 minutes."""
+    if not to_name:
+        to_name = to_email.split('@')[0]
 
-Security Notice: Never share this code with anyone.
+    subject = "PhishPulse \u2014 Password Reset Code"
 
----
-PhishPulse - Cybersecurity Training Platform
+    body = f"""
+    <tr>
+      <td style="padding:40px 40px 28px 40px;">
+        <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;
+                   color:{_WHITE};letter-spacing:-0.3px;">
+          Reset your password
+        </h1>
+        <p style="margin:0 0 28px;font-size:15px;color:{_MUTED};line-height:1.7;">
+          Hi <strong style="color:{_WHITE};">{to_name}</strong>,
+          we received a request to reset your password. Use the code below:
+        </p>
+        <!-- OTP digits -->
+        <table role="presentation" cellpadding="0" cellspacing="0"
+               style="margin:0 auto 24px auto;">
+          <tr>{_otp_digits(otp_code)}</tr>
+        </table>
+        {_expiry_pill(10)}
+        <p style="margin:0;font-size:14px;color:{_MUTED};line-height:1.6;">
+          If you did not request a password reset, ignore this email.
+          Your password will not be changed.
+        </p>
+      </td>
+    </tr>
+    {_security_notice("Never share this code with anyone. PhishPulse will never call you to ask for this code.")}
     """
-    
-    return send_email_brevo(to_email, to_name, subject, html_body, text_body)
 
+    text = (
+        f"PhishPulse \u2014 Password Reset\n\n"
+        f"Hi {to_name},\n\nYour reset code: {otp_code}\n\n"
+        f"Expires in 10 minutes.\n\n"
+        f"If you did not request a reset, ignore this email.\n\n"
+        f"---\nPhishPulse \u2014 Cybersecurity Training Platform"
+    )
+    return send_email_brevo(to_email, to_name, subject, _wrap(body), text)
+
+
+# ── send_password_reset_email — legacy link-based reset ─────────────────────
 
 def send_password_reset_email(to_email: str, to_name: str, reset_link: str) -> bool:
-    """
-    Send password reset email.
-    
-    Args:
-        to_email: Recipient email address
-        to_name: Recipient name
-        reset_link: Password reset link
-    
-    Returns:
-        True if sent successfully, False on error
-    """
-    
-    subject = "PhishPulse - Password Reset Request"
-    
-    html_body = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhishPulse - Password Reset</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #0a0a0f;">
-    <table role="presentation" style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td align="center" style="padding: 40px 0;">
-                <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #1a1a1f; border-radius: 12px; overflow: hidden;">
-                    <tr>
-                        <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0.05) 100%);">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
-                                <span style="color: #06b6d4;">🛡️</span> PhishPulse
-                            </h1>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 40px;">
-                            <h2 style="margin: 0 0 20px 0; color: #ffffff; font-size: 24px;">Password Reset Request</h2>
-                            <p style="margin: 0 0 20px 0; color: #94a3b8; font-size: 16px;">
-                                Hello <strong style="color: #ffffff;">{to_name}</strong>,
-                            </p>
-                            <p style="margin: 0 0 30px 0; color: #94a3b8; font-size: 16px;">
-                                We received a request to reset your password. Click the button below to reset it:
-                            </p>
-                            <table role="presentation" style="margin: 0 0 30px 0;">
-                                <tr>
-                                    <td style="border-radius: 8px; background-color: #06b6d4;">
-                                        <a href="{reset_link}" style="display: inline-block; padding: 16px 32px; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px;">
-                                            Reset Password
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                            <p style="margin: 0 0 20px 0; color: #94a3b8; font-size: 14px;">
-                                This link will expire in <strong style="color: #06b6d4;">1 hour</strong>.
-                            </p>
-                            <p style="margin: 0; color: #64748b; font-size: 14px;">
-                                If you didn't request this, please ignore this email.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
+    """Legacy link-based password reset email."""
+    subject = "PhishPulse \u2014 Password Reset Request"
+
+    body = f"""
+    <tr>
+      <td style="padding:40px 40px 40px 40px;">
+        <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;
+                   color:{_WHITE};letter-spacing:-0.3px;">
+          Reset your password
+        </h1>
+        <p style="margin:0 0 6px;font-size:15px;color:{_MUTED};line-height:1.7;">
+          Hi <strong style="color:{_WHITE};">{to_name}</strong>,
+        </p>
+        <p style="margin:0 0 32px;font-size:15px;color:{_MUTED};line-height:1.7;">
+          We received a request to reset your PhishPulse password.
+          Click the button below to choose a new one.
+        </p>
+        <!-- CTA button -->
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+          <tr>
+            <td style="background-color:{_CYAN};border-radius:8px;">
+              <a href="{reset_link}"
+                 style="display:inline-block;padding:14px 36px;font-size:15px;
+                        font-weight:700;color:#000000;text-decoration:none;
+                        border-radius:8px;letter-spacing:-0.2px;">
+                Reset password
+              </a>
             </td>
-        </tr>
-    </table>
-</body>
-</html>
+          </tr>
+        </table>
+        <p style="margin:0 0 6px;font-size:12px;color:{_DIM};">
+          Or paste this link in your browser:
+        </p>
+        <p style="margin:0 0 28px;font-size:12px;word-break:break-all;">
+          <a href="{reset_link}" style="color:{_CYAN};text-decoration:none;">{reset_link}</a>
+        </p>
+        <p style="margin:0;font-size:13px;color:{_DIM};">
+          This link expires in
+          <strong style="color:{_MUTED};">1 hour</strong>.
+          If you did not request this, ignore this email.
+        </p>
+      </td>
+    </tr>
     """
-    
-    text_body = f"""
-PhishPulse - Password Reset Request
 
-Hello {to_name},
-
-We received a request to reset your password.
-
-Reset your password by visiting this link:
-{reset_link}
-
-This link will expire in 1 hour.
-
-If you didn't request this, please ignore this email.
-
----
-PhishPulse - Cybersecurity Training Platform
-    """
-    
-    return send_email_brevo(to_email, to_name, subject, html_body, text_body)
+    text = (
+        f"PhishPulse \u2014 Password Reset\n\n"
+        f"Hi {to_name},\n\nReset your password: {reset_link}\n\n"
+        f"Expires in 1 hour.\n\n"
+        f"If you did not request this, ignore this email.\n\n"
+        f"---\nPhishPulse \u2014 Cybersecurity Training Platform"
+    )
+    return send_email_brevo(to_email, to_name, subject, _wrap(body), text)

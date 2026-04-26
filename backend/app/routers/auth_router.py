@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.auth_schema import (
     RegisterRequest, LoginRequest, VerifyOtpRequest,
-    ResendOtpRequest, ForgotPasswordRequest, ResetPasswordRequest, UserResponse
+    ResendOtpRequest, ForgotPasswordRequest, ForgotPasswordOtpRequest,
+    VerifyResetOtpRequest, ResetPasswordRequest, UserResponse
 )
 from app.services import auth_service
 from app.core.jwt_handler import create_access_token
@@ -17,14 +18,14 @@ COOKIE_NAME = "access_token"
 
 
 def _set_auth_cookie(response: Response, token: str, remember_me: bool = False):
-    """Set httpOnly cookie with configurable max_age based on remember_me."""
+    """Set httpOnly cookie. secure=True in production (DEBUG=False), False in dev."""
     expire_days = settings.REMEMBER_ME_EXPIRE_DAYS if remember_me else settings.ACCESS_TOKEN_EXPIRE_DAYS
-    max_age = 60 * 60 * 24 * expire_days  # Convert days to seconds
+    max_age = 60 * 60 * 24 * expire_days
     response.set_cookie(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=False,   # Set True in production with HTTPS
+        secure=not settings.DEBUG,  # Fix: True in prod, False in dev only
         samesite="lax",
         max_age=max_age,
     )
@@ -32,10 +33,6 @@ def _set_auth_cookie(response: Response, token: str, remember_me: bool = False):
 
 @router.post("/register", status_code=201)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    """
-    Session-based registration: Returns session_id instead of user_id.
-    User account is only created after OTP verification.
-    """
     result = auth_service.register_user(payload, db)
     return {
         "message": result["message"],
@@ -57,12 +54,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
 @router.post("/verify-otp")
 def verify_otp(payload: VerifyOtpRequest, response: Response, db: Session = Depends(get_db)):
-    """
-    Verify OTP from session and create user account.
-    user_id parameter now accepts session_id for registration flow.
-    """
     user = auth_service.verify_otp(payload.user_id, payload.code, db)
-    # Issue token after successful verification
     token = create_access_token(user.id)
     _set_auth_cookie(response, token)
     return {
@@ -75,30 +67,58 @@ def verify_otp(payload: VerifyOtpRequest, response: Response, db: Session = Depe
 def resend_otp(payload: ResendOtpRequest):
     """
     Resend OTP for session-based registration.
-    user_id parameter accepts session_id for registration flow.
+    Fix: session_manager already enforces MAX_RESENDS=2, so this is protected
+    against abuse — after 2 resends the session is invalidated.
     """
     try:
         auth_service.resend_otp(payload.user_id)
         return {"message": "OTP resent successfully."}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise e
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/forgot-password")
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """Legacy link-based reset — kept for compatibility."""
     auth_service.forgot_password(payload.email, db)
     return {"message": "If this email exists, a reset link has been sent."}
 
 
+@router.post("/forgot-password-otp")
+def forgot_password_otp(payload: ForgotPasswordOtpRequest, db: Session = Depends(get_db)):
+    """Send a 6-digit OTP to the user's email for password reset."""
+    auth_service.forgot_password_send_otp(payload.email, db)
+    return {"message": "If this email exists, a verification code has been sent."}
+
+
+@router.post("/verify-reset-otp")
+def verify_reset_otp(payload: VerifyResetOtpRequest, db: Session = Depends(get_db)):
+    """Verify the password-reset OTP and return a short-lived reset token."""
+    reset_token = auth_service.verify_reset_otp(payload.email, payload.code, db)
+    return {"reset_token": reset_token}
+
+
 @router.post("/reset-password")
 def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Reset password using the token issued by verify-reset-otp.
+    Token is single-use, 15-min expiry, validated server-side.
+    Password policy enforced by ResetPasswordRequest schema validator.
+    """
     auth_service.reset_password(payload.token, payload.new_password, db)
     return {"message": "Password reset successful. Please log in."}
 
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie(COOKIE_NAME)
+    response.delete_cookie(
+        key=COOKIE_NAME,
+        httponly=True,
+        samesite="lax",
+        secure=not settings.DEBUG,
+    )
     return {"message": "Logged out successfully."}
 
 

@@ -46,3 +46,16 @@ class Settings(BaseSettings):
 
 # Create a global settings instance
 settings = Settings()
+
+# Warn loudly if running with the default insecure secret key
+_DEFAULT_KEY = "your-secret-key-change-in-production-min-32-chars"
+if settings.SECRET_KEY == _DEFAULT_KEY:
+    import warnings
+    warnings.warn(
+        "\n" + "=" * 70 + "\n"
+        "SECURITY WARNING: SECRET_KEY is set to the default placeholder value.\n"
+        "Anyone can forge JWT tokens. Set a strong random SECRET_KEY in .env:\n"
+        "  python -c \"import secrets; print(secrets.token_hex(32))\"\n"
+        + "=" * 70,
+        stacklevel=2,
+    )

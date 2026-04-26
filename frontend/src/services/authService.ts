@@ -8,6 +8,8 @@ const AUTH_ENDPOINTS = {
   LOGOUT: 'auth/logout',
   ME: 'auth/me',
   FORGOT_PASSWORD: 'auth/forgot-password',
+  FORGOT_PASSWORD_OTP: 'auth/forgot-password-otp',
+  VERIFY_RESET_OTP: 'auth/verify-reset-otp',
   RESET_PASSWORD: 'auth/reset-password',
 } as const;
 
@@ -47,7 +49,14 @@ export const resendOtp = async (data: ResendOtpData) => {
 };
 
 export const logout = async () => {
-  try { await api.post(AUTH_ENDPOINTS.LOGOUT); } finally { localStorage.removeItem('token'); }
+  try {
+    await api.post(AUTH_ENDPOINTS.LOGOUT);
+  } finally {
+    // Clear the persisted user from Zustand store + localStorage
+    // The httpOnly cookie is cleared server-side by the logout endpoint
+    const { clearUser } = (await import('@/store/authStore')).useAuthStore.getState();
+    clearUser();
+  }
 };
 
 export const getMe = async () => {
@@ -62,6 +71,16 @@ export const checkAuth = async () => {
 
 export const forgotPassword = async (data: ForgotPasswordData) => {
   const response = await api.post(AUTH_ENDPOINTS.FORGOT_PASSWORD, data);
+  return response.data;
+};
+
+export const forgotPasswordOtp = async (data: ForgotPasswordData) => {
+  const response = await api.post(AUTH_ENDPOINTS.FORGOT_PASSWORD_OTP, data);
+  return response.data;
+};
+
+export const verifyResetOtp = async (data: { email: string; code: string }) => {
+  const response = await api.post(AUTH_ENDPOINTS.VERIFY_RESET_OTP, data);
   return response.data;
 };
 

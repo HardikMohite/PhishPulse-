@@ -9,19 +9,18 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, setUser } = useAuthStore();
-  // Only run a verification check when there is no user in the store yet
-  const [checking, setChecking] = useState(!user);
+  // Always verify with the server — never trust localStorage alone.
+  // This catches: expired cookies, revoked sessions, tampered store data.
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      // No cached user — check if the httpOnly cookie is still valid
-      getMe()
-        .then((data) => setUser(data))
-        .catch(() => setUser(null))
-        .finally(() => setChecking(false));
-    } else {
-      setChecking(false);
-    }
+    getMe()
+      .then((data) => setUser(data))
+      .catch(() => {
+        // Cookie invalid / expired — clear any stale local state
+        setUser(null);
+      })
+      .finally(() => setChecking(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -37,7 +36,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    // Fix: redirect to login, not hub page
+    return <Navigate to="/auth/login" replace />;
   }
 
   return <>{children}</>;

@@ -6,6 +6,9 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from dataclasses import dataclass, asdict
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -68,7 +71,7 @@ class RegistrationSessionManager:
         )
         
         self._sessions[session_id] = session
-        print(f"[SESSION CREATED] ID: {session_id} | Email: {email}")
+        logger.debug(f"Session created: {session_id[:8]}... for {email}")
         return session_id
     
     def get_session(self, session_id: str) -> Optional[PendingRegistration]:
@@ -85,7 +88,7 @@ class RegistrationSessionManager:
         if session_age > self.SESSION_TTL_MINUTES:
             # Session expired, delete it
             self.delete_session(session_id)
-            print(f"[SESSION EXPIRED] ID: {session_id} (Age: {session_age:.1f} min)")
+            logger.debug(f"Session expired: {session_id[:8]}...")
             return None
         
         return session
@@ -113,7 +116,7 @@ class RegistrationSessionManager:
         # Verify OTP code
         if session.otp_code != otp_code:
             session.attempts += 1
-            print(f"[OTP FAILED] Session: {session_id} | Attempts: {session.attempts}/{self.MAX_OTP_ATTEMPTS}")
+            logger.debug(f"OTP failed attempt {session.attempts}/{self.MAX_OTP_ATTEMPTS}")
             
             remaining = self.MAX_OTP_ATTEMPTS - session.attempts
             if remaining > 0:
@@ -130,7 +133,7 @@ class RegistrationSessionManager:
             "hashed_password": session.hashed_password
         }
         
-        print(f"[OTP VERIFIED] Session: {session_id} | Email: {session.email}")
+        logger.debug(f"OTP verified for session {session_id[:8]}...")
         return True, None, user_data
     
     def update_otp(self, session_id: str, new_otp: str) -> tuple[bool, Optional[str]]:
@@ -155,7 +158,7 @@ class RegistrationSessionManager:
         session.resend_count += 1
         session.attempts = 0  # Reset attempts on resend
         
-        print(f"[OTP RESENT] Session: {session_id} | Resends: {session.resend_count}/{self.MAX_RESENDS}")
+        logger.debug(f"OTP resent ({session.resend_count}/{self.MAX_RESENDS})")
         return True, None
     
     def increment_attempts(self, session_id: str) -> int:
@@ -163,7 +166,7 @@ class RegistrationSessionManager:
         session = self._sessions.get(session_id)
         if session:
             session.attempts += 1
-            print(f"[OTP FAILED] Session: {session_id} | Attempts: {session.attempts}/{self.MAX_OTP_ATTEMPTS}")
+            logger.debug(f"OTP failed attempt {session.attempts}/{self.MAX_OTP_ATTEMPTS}")
             return session.attempts
         return 0
 
@@ -182,7 +185,7 @@ class RegistrationSessionManager:
         session.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=self.OTP_EXPIRY_MINUTES)
         session.resend_count += 1
         session.attempts = 0  # reset attempts on resend
-        print(f"[OTP REGENERATED] Session: {session_id} | Resends: {session.resend_count}/{self.MAX_RESENDS}")
+        logger.debug(f"OTP regenerated ({session.resend_count}/{self.MAX_RESENDS})")
         return new_otp
 
     def delete_session(self, session_id: str) -> None:
@@ -190,7 +193,7 @@ class RegistrationSessionManager:
         if session_id in self._sessions:
             session = self._sessions[session_id]
             del self._sessions[session_id]
-            print(f"[SESSION DELETED] ID: {session_id} | Email: {session.email}")
+            logger.debug(f"Session deleted: {session_id[:8]}...")
     
     def cleanup_expired_sessions(self) -> int:
         """
@@ -209,7 +212,7 @@ class RegistrationSessionManager:
             self.delete_session(session_id)
         
         if expired:
-            print(f"[CLEANUP] Deleted {len(expired)} expired session(s)")
+            logger.debug(f"Cleaned up {len(expired)} expired session(s)")
         
         return len(expired)
     
