@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Vault as VaultIcon, AlertTriangle, Swords as SwordsIcon,
   Trophy as TrophyIcon, ShoppingBag as ShoppingBagIcon, LockKeyhole,
   LogOut, HelpCircle, ChevronRight, Zap, Star, ChevronUp,
-  Shield, CheckCircle2, Lock, Play, RotateCcw, MousePointer, Target, ArrowRight,
+  Shield, Lock, Play, MousePointer, Target, ArrowRight,
 } from "lucide-react";
 import VaultCube from "@/components/VaultCube";
 import CustomShield from "@/components/CustomShield";
@@ -22,7 +22,7 @@ const ROADMAP_LEVELS = [
 ] as const;
 
 const TOTAL     = ROADMAP_LEVELS.length;
-const DONE      = ROADMAP_LEVELS.filter(v => v.status === "completed").length;
+const DONE      = ROADMAP_LEVELS.filter(v => v.status === "unlocked").length;
 const PROG_PCT  = Math.round((DONE / TOTAL) * 100);
 
 const diffColor = (d: string) => {
@@ -126,19 +126,21 @@ const Sidebar = ({ onLogout, userName }: { onLogout: () => void; userName: strin
             <p className="text-[10px] font-black text-white uppercase tracking-tighter truncate max-w-[140px]">{userName}</p>
             <div className="flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Ops</span>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active</span>
             </div>
           </div>
         </div>
-        <button
+        <motion.button
           onClick={onLogout}
-          className="w-full group flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all overflow-hidden"
+          className="w-full group flex items-center gap-4 p-3 rounded-xl text-red-400 bg-red-500/5 transition-all overflow-hidden hover:shadow-lg hover:shadow-red-500/40"
+          whileHover={{ x: 2 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <LogOut className="w-5 h-5 min-w-[20px] transition-all duration-300" />
+          <LogOut className="w-5 h-5 min-w-[20px] text-red-400 transition-all duration-300" />
           <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"}`}>
             Logout
           </span>
-        </button>
+        </motion.button>
       </div>
     </div>
   );
@@ -296,7 +298,7 @@ export default function VaultLevelsPage() {
               if (!node.connectTo) return null;
               const tgt = ROADMAP_LEVELS.find(n => n.id === node.connectTo);
               if (!tgt) return null;
-              const active = node.status === "completed" && (tgt.status === "completed" || tgt.status === "unlocked");
+              const active = node.status === "unlocked" && tgt.status === "unlocked";
               return <g key={`${node.id}-${tgt.id}`}>{drawLine(node, tgt, active)}</g>;
             })}
           </svg>
@@ -315,7 +317,7 @@ export default function VaultLevelsPage() {
                 <VaultCube
                   id={vault.id}
                   title={vault.title}
-                  status={vault.status as "locked" | "unlocked" | "completed"}
+                  status={vault.status as "locked" | "unlocked"}
                   top={vault.pos.top}
                   left={vault.pos.left}
                   selected={selectedVault === vault.id}
@@ -370,12 +372,11 @@ export default function VaultLevelsPage() {
                         <h2 className="text-sm font-black text-white leading-snug tracking-wide">{sel.title}</h2>
                       </div>
                       <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center" style={{
-                        background: sel.status === "completed" ? "rgba(59,130,246,0.12)" : sel.status === "unlocked" ? "rgba(6,182,212,0.12)" : "rgba(51,65,85,0.2)",
-                        border: `1px solid ${sel.status === "completed" ? "rgba(59,130,246,0.3)" : sel.status === "unlocked" ? "rgba(6,182,212,0.3)" : "rgba(51,65,85,0.3)"}`,
+                        background: sel.status === "unlocked" ? "rgba(6,182,212,0.12)" : "rgba(51,65,85,0.2)",
+                        border: `1px solid ${sel.status === "unlocked" ? "rgba(6,182,212,0.3)" : "rgba(51,65,85,0.3)"}`,
                       }}>
-                        {sel.status === "completed" ? <CheckCircle2 size={16} className="text-blue-400" />
-                          : sel.status === "locked"   ? <Lock size={14} className="text-slate-600" />
-                          : <Target size={14} className="text-cyan-400" />}
+                        {sel.status === "unlocked" ? <Target size={14} className="text-cyan-400" />
+                          : <Lock size={14} className="text-slate-600" />}
                       </div>
                     </div>
 
@@ -422,16 +423,13 @@ export default function VaultLevelsPage() {
                       style={
                         sel.status === "locked"
                           ? { background: "rgba(15,20,30,0.8)", color: "#334155", cursor: "not-allowed", border: "1px solid rgba(51,65,85,0.2)" }
-                          : sel.status === "completed"
-                          ? { background: "rgba(59,130,246,0.1)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.25)", boxShadow: "0 0 16px rgba(59,130,246,0.1)" }
                           : { background: "#06b6d4", color: "#000", boxShadow: "0 0 24px rgba(6,182,212,0.45)" }
                       }
                     >
                       {sel.status === "locked"    && <Lock size={11} />}
-                      {sel.status === "completed" && <RotateCcw size={11} />}
                       {sel.status === "unlocked"  && <Play size={11} />}
                       <span>
-                        {sel.status === "locked" ? "Locked" : sel.status === "completed" ? "Review Mission" : "Initiate Mission"}
+                        {sel.status === "locked" ? "Locked" : "Initiate Mission"}
                       </span>
                       {sel.status !== "locked" && <ArrowRight size={11} />}
                     </motion.button>
@@ -493,7 +491,6 @@ export default function VaultLevelsPage() {
               <div className="px-4 py-3 space-y-2.5">
                 {[
                   { icon: <MousePointer size={11} className="text-slate-500" />, text: "Hover a vault to preview details"    },
-                  { icon: <CheckCircle2 size={11} className="text-blue-400"  />, text: "Blue = completed mission"            },
                   { icon: <Target      size={11} className="text-cyan-400"   />, text: "Cyan = available to start"           },
                   { icon: <Lock        size={11} className="text-slate-700"  />, text: "Dark = locked, finish previous first" },
                 ].map(({ icon, text }) => (
