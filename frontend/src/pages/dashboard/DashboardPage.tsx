@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ComponentType, type SVGProps } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield as ShieldIcon,
@@ -12,10 +12,8 @@ import {
   Trophy as TrophyIcon,
   LayoutDashboard,
   Swords as SwordsIcon,
-  Target as TargetIcon,
   ArrowUpRight,
   AlertTriangle,
-  Settings as SettingsIcon,
   X as XIcon,
   ShieldCheck as ShieldCheckIcon,
   ShoppingBag as ShoppingBagIcon,
@@ -23,7 +21,6 @@ import {
   LockKeyhole,
   Snowflake as SnowflakeIcon,
   LogOut,
-  Loader2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -31,6 +28,17 @@ import { logout, getMe } from '@/services/authService';
 import { getDailyChallenge } from '@/services/ctfService';
 import type { CTFChallenge } from '@/services/ctfService';
 import CustomShield from '@/components/CustomShield';
+
+type LucideIcon = ComponentType<SVGProps<SVGSVGElement>>;
+
+type Notification = {
+  id: number;
+  title: string;
+  message: string;
+  time: string;
+  icon: string;
+  color: 'cyan' | 'yellow' | 'green' | 'orange' | 'red';
+};
 
 const BRAND_CYAN = '#06b6d4';
 
@@ -123,7 +131,7 @@ const HealthCard = ({ currentHp = 80, maxHp = 100 }: { currentHp?: number; maxHp
 const StatCard = ({
   icon: Icon, label, value, subtext, color = 'cyan', progress,
 }: {
-  icon: any; label: string; value: string | number; subtext?: string; color?: string; progress?: number;
+  icon: LucideIcon; label: string; value: string | number; subtext?: string; color?: string; progress?: number;
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -131,7 +139,10 @@ const StatCard = ({
     className="bg-[#0f172a]/80 border border-cyan-500/10 p-5 rounded-2xl backdrop-blur-xl group transition-all"
   >
     <div className="flex flex-col h-full">
-      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-3">{label}</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{label}</p>
+        <Icon className={`w-6 h-6 ${color === 'yellow' ? 'text-yellow-400' : color === 'orange' ? 'text-orange-400' : 'text-cyan-400'}`} />
+      </div>
       <div className="flex items-baseline gap-2">
         <span className={`text-4xl font-black ${color === 'yellow' ? 'text-yellow-400' : color === 'orange' ? 'text-orange-400' : 'text-white'}`}>
           {value}
@@ -254,11 +265,11 @@ const Sidebar = ({
 
       {/* Bottom */}
       <div className="px-2 pb-6 mt-auto border-t border-white/5 pt-4 space-y-4">
-        <div className={`p-3 rounded-2xl bg-white/5 flex items-center gap-3 transition-all overflow-hidden ${!isHovered ? 'justify-center p-2' : ''}`}>
+        <div className={`p-3 rounded-2xl bg-white/5 flex items-center gap-3 transition-all overflow-hidden ${!isHovered ? "justify-center p-2" : ""}`}>
           <div className="w-8 h-8 min-w-[32px] rounded-full bg-slate-800 border border-white/10 overflow-hidden flex-shrink-0">
             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} alt="avatar" />
           </div>
-          <div className={`transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 pointer-events-none'}`}>
+          <div className={`transition-all duration-300 whitespace-nowrap ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 pointer-events-none"}`}>
             <p className="text-[10px] font-black text-white uppercase tracking-tighter truncate max-w-[140px]">{userName}</p>
             <div className="flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -266,16 +277,17 @@ const Sidebar = ({
             </div>
           </div>
         </div>
-
-        <button
+        <motion.button
           onClick={onLogout}
-          className="w-full group flex items-center gap-4 p-3 rounded-xl text-red-400 bg-red-500/5 transition-all overflow-hidden"
+          className="w-full group flex items-center gap-4 p-3 rounded-xl text-red-400 border border-red-500/30 bg-red-500/5 transition-all overflow-hidden hover:border-red-400 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:bg-red-400/5 backdrop-blur-md cursor-pointer"
+          whileHover={{ x: 2 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <LogOut className="w-5 h-5 min-w-[20px] transition-all duration-300" />
-          <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
+          <LogOut className="w-5 h-5 min-w-[20px] text-red-400 transition-all duration-300" />
+          <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"}`}>
             Logout
           </span>
-        </button>
+        </motion.button>
       </div>
     </div>
   );
@@ -294,7 +306,12 @@ export default function DashboardPage() {
   const [showDefenseTooltip, setShowDefenseTooltip] = useState(false);
   const [isStoreOpen, setIsStoreOpen] = useState(false);
   const [purchaseFeedback, setPurchaseFeedback] = useState<string | null>(null);
-  const [loggingOut, setLoggingOut] = useState(false);
+
+  // Mock notifications data
+  const notifications: Notification[] = [
+    // { id: 1, title: 'Vault Completed', message: 'You completed Vault 2 - Spear Phishing', time: '2 hours ago', icon: '✓', color: 'cyan' },
+    // { id: 2, title: 'New Challenge', message: 'Daily CTF challenge available now', time: '30 mins ago', icon: '🎯', color: 'yellow' },
+  ];
 
   /* Fetch real data on mount */
   useEffect(() => {
@@ -344,7 +361,6 @@ export default function DashboardPage() {
   }, [dailyChallenge, timeLeft]);
 
   const handleLogout = async () => {
-    setLoggingOut(true);
     try { await logout(); } catch {}
     setUser(null);
     navigate('/auth/login');
@@ -403,13 +419,82 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-6">
-            <button
+          <div className="relative">
+            <motion.button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className="relative p-2.5 text-slate-400 hover:text-cyan-400 transition-colors bg-white/5 rounded-xl border border-white/5"
+              className="relative p-2.5 text-slate-400 hover:text-cyan-400 transition-colors bg-white/5 rounded-xl border border-white/5 hover:border-cyan-500/30 hover:shadow-[0_0_20px_rgba(6,182,212,0.25)]"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <BellIcon className="w-5 h-5" />
-              <span className="absolute top-3 right-3 w-2 h-2 bg-cyan-400 rounded-full border-2 border-[#0a0a0f]" />
-            </button>
+              {notifications.length > 0 && (
+                <span className="absolute top-3 right-3 w-2 h-2 bg-cyan-400 rounded-full border-2 border-[#0a0a0f] animate-pulse" />
+              )}
+            </motion.button>
+
+            {/* Notifications Dropdown */}
+            <AnimatePresence>
+              {isNotificationsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 top-full mt-2 w-80 bg-[#0d1117] border border-cyan-500/20 rounded-xl shadow-2xl z-50 overflow-hidden"
+                  style={{ boxShadow: '0 20px 60px rgba(6, 182, 212, 0.15)' }}
+                >
+                  {/* Header */}
+                  <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Notifications</h3>
+                    <motion.button
+                      onClick={() => setIsNotificationsOpen(false)}
+                      className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <XIcon size={14} className="text-slate-400" />
+                    </motion.button>
+                  </div>
+
+                  {/* Content */}
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-12 text-center flex flex-col items-center gap-3">
+                        <div className="p-3 bg-white/5 rounded-lg">
+                          <BellIcon size={24} className="text-slate-500" />
+                        </div>
+                        <p className="text-xs text-slate-500 font-semibold">No new notifications</p>
+                        <p className="text-[10px] text-slate-600">You're all caught up! Check back later.</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-white/5">
+                        {notifications.map((notif) => (
+                          <motion.div
+                            key={notif.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer border-l-2"
+                            style={{
+                              borderLeftColor: notif.color === 'cyan' ? '#06b6d4' : notif.color === 'yellow' ? '#f59e0b' : '#10b981',
+                            }}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="text-lg mt-0.5">{notif.icon}</div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-black text-white uppercase tracking-tight">{notif.title}</p>
+                                <p className="text-[11px] text-slate-400 mt-1 leading-snug">{notif.message}</p>
+                                <p className="text-[9px] text-slate-600 mt-2 uppercase tracking-wider">{notif.time}</p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
             <div className="relative flex items-center gap-4 pl-6 border-l border-white/10">
               <div className="text-right hidden sm:block">
