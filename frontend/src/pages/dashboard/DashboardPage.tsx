@@ -262,14 +262,14 @@ const Sidebar = ({
             <p className="text-[10px] font-black text-white uppercase tracking-tighter truncate max-w-[140px]">{userName}</p>
             <div className="flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active Ops</span>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active</span>
             </div>
           </div>
         </div>
 
         <button
           onClick={onLogout}
-          className="w-full group flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all overflow-hidden"
+          className="w-full group flex items-center gap-4 p-3 rounded-xl text-red-400 bg-red-500/5 transition-all overflow-hidden"
         >
           <LogOut className="w-5 h-5 min-w-[20px] transition-all duration-300" />
           <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
