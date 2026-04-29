@@ -1,0 +1,62 @@
+[
+  {
+    "level_id": 1,
+    "correct_answers": { "1": false, "2": false, "3": true },
+    "key_insight": "Legitimate companies address you by name and never threaten account suspension in emails. If you feel rushed — stop and verify.",
+    "red_flags": [
+      {
+        "label": "Fake sender domain",
+        "explanation": "The email came from phishpulse-alert.com which is not an official PhishPulse domain.",
+        "highlight": "security@phishpulse-alert.com"
+      },
+      {
+        "label": "Artificial urgency",
+        "explanation": "Real security teams give you time to act. '30 minutes or permanent lock' is designed to panic you.",
+        "highlight": "30 minutes"
+      },
+      {
+        "label": "Generic greeting",
+        "explanation": "The email says 'Dear User' — your real service knows your name.",
+        "highlight": "Dear User"
+      }
+    ],
+    "attack_timeline": [
+      { "time": "0:00", "event": "You clicked the verification link" },
+      { "time": "0:05", "event": "Landed on a fake PhishPulse login page" },
+      { "time": "0:47", "event": "Entered your username and password" },
+      { "time": "1:00", "event": "Attacker received your credentials" },
+      { "time": "1:30", "event": "Attacker logged into your real account", "is_critical": true },
+      { "time": "2:00", "event": "Your account details and payment info extracted" }
+    ]
+  },
+  {
+    "level_id": 2,
+    "correct_answers": { "4": true, "5": true, "6": false, "7": true },
+    "key_insight": "If an email demands action before you have time to think, it is designed to trap you. Step back and verify through official channels.",
+    "red_flags": [
+      {
+        "label": "Fake domain masquerading as Netflix",
+        "explanation": "billing.netflix@pulse-notifications.com is not a Netflix domain. Real Netflix emails come from netflix.com.",
+        "highlight": "pulse-notifications.com"
+      },
+      {
+        "label": "Extreme urgency language",
+        "explanation": "'SUSPENDED in 2 HOURS' and 'IMMEDIATELY' are pressure tactics to stop you from thinking clearly.",
+        "highlight": "2 HOURS"
+      },
+      {
+        "label": "SBI lookalike domain",
+        "explanation": "The KYC email came from pulse.com, not sbi.co.in. SBI never asks for KYC via email links.",
+        "highlight": "alerts.sbi@pulse.com"
+      }
+    ],
+    "attack_timeline": [
+      { "time": "0:00", "event": "You clicked 'Update Payment Details'" },
+      { "time": "0:10", "event": "Landed on a Netflix-lookalike payment page" },
+      { "time": "1:00", "event": "Entered credit card number, CVV, and expiry" },
+      { "time": "1:15", "event": "Attacker received full card details", "is_critical": true },
+      { "time": "2:00", "event": "Fraudulent transaction initiated for ₹48,000" },
+      { "time": "3:00", "event": "Your card blocked — too late" }
+    ]
+  }
+]

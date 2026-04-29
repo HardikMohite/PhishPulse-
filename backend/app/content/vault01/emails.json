@@ -1,0 +1,105 @@
+[
+  {
+    "id": 1,
+    "level_id": 1,
+    "sender": "Flipkart",
+    "address": "orders.flipkart@fk-notifications.com",
+    "subject": "Order Confirmed: Apple iPad Air",
+    "preview": "Hi, your order for Apple iPad Air (5th Gen) has been successfully placed...",
+    "time": "09:12 AM",
+    "is_phishing": false,
+    "avatar_color": "bg-blue-600 text-white",
+    "content_html": "<div style=\"font-family:sans-serif;max-width:600px;margin:0 auto;background:#0A0A0A;color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden\"><div style=\"background:#047BD5;padding:20px;text-align:center\"><h2 style=\"color:white;margin:0;font-weight:800;letter-spacing:2px\">FLIPKART</h2></div><div style=\"padding:30px\"><p style=\"margin-bottom:20px\">Hi,</p><p style=\"margin-bottom:20px\">Your order for <strong>Apple iPad Air (5th Gen)</strong> has been successfully placed.</p><p style=\"margin-bottom:20px\">Expected delivery: Thursday, 12 Oct.</p><p style=\"margin-bottom:20px\">Order ID: FK-2024-8821734</p><a href=\"#\" style=\"background:#fb641b;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;display:inline-block;font-weight:bold;margin-bottom:20px\">Track Order</a><p style=\"font-size:12px;color:rgba(255,255,255,0.4);border-top:1px solid rgba(255,255,255,0.1);padding-top:20px\">Flipkart Internet Private Limited<br>Alyssa, Begonia &amp; Clove Embassy Tech Village, Outer Ring Road</p></div></div>",
+    "links": [
+      { "display_text": "Track Order", "real_url": "https://www.flipkart.com/orders/FK-2024-8821734", "is_dangerous": false }
+    ]
+  },
+  {
+    "id": 2,
+    "level_id": 1,
+    "sender": "HR Department",
+    "address": "hr@yourcompany.com",
+    "subject": "Q3 Performance Review Schedule",
+    "preview": "Hello Team, The Q3 performance review period will begin next week...",
+    "time": "10:20 AM",
+    "is_phishing": false,
+    "avatar_color": "bg-purple-600 text-white",
+    "content_html": "<div style=\"font-family:sans-serif;color:rgba(255,255,255,0.9)\"><p style=\"margin-bottom:16px\">Hello Team,</p><p style=\"margin-bottom:16px\">The Q3 performance review period will begin next week. Managers will reach out to schedule your 1-on-1 sessions.</p><p style=\"margin-bottom:16px\">Please take a moment to fill out your self-evaluation form before your scheduled meeting. You can find the templates on the staff intranet.</p><p style=\"margin-bottom:30px\">Let HR know if you have any questions.</p><p style=\"color:rgba(255,255,255,0.5);font-size:14px\"><strong>Sarah Jenkins</strong><br>Human Resources Director<br>Internal Comm ID: #8821</p></div>",
+    "links": []
+  },
+  {
+    "id": 3,
+    "level_id": 1,
+    "sender": "PhishPulse Security",
+    "address": "security@phishpulse-alert.com",
+    "subject": "URGENT: Your account has been compromised",
+    "preview": "We detected suspicious activity. Verify your account immediately or it will be locked...",
+    "time": "11:45 AM",
+    "is_phishing": true,
+    "avatar_color": "bg-red-600 text-white",
+    "content_html": "<div style=\"font-family:sans-serif;max-width:600px;margin:0 auto;background:#1a0000;color:rgba(255,255,255,0.9);border:1px solid rgba(255,0,0,0.3);border-radius:8px;padding:30px\"><div style=\"background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:4px;padding:12px;margin-bottom:24px;text-align:center\"><span style=\"color:#ff4444;font-weight:bold;font-size:14px\">⚠ SECURITY ALERT</span></div><p style=\"margin-bottom:16px\">Dear User,</p><p style=\"margin-bottom:16px\">We have detected <strong style=\"color:#ff4444\">suspicious login activity</strong> on your PhishPulse account from an unrecognized device.</p><p style=\"margin-bottom:16px\">Your account will be <strong style=\"color:#ff4444\">permanently locked in 30 minutes</strong> unless you verify your identity now.</p><div style=\"text-align:center;margin:24px 0\"><a href=\"#\" style=\"background:#ff4444;color:white;padding:14px 28px;text-decoration:none;border-radius:4px;font-weight:bold;font-size:16px\">Verify My Account Now</a></div><p style=\"font-size:12px;color:rgba(255,255,255,0.4)\">If you do not verify within 30 minutes your account will be suspended permanently.<br>PhishPulse Security Team</p></div>",
+    "links": [
+      { "display_text": "Verify My Account Now", "real_url": "http://phishpulse-alert.com.verify.ru/steal", "is_dangerous": true }
+    ]
+  },
+  {
+    "id": 4,
+    "level_id": 2,
+    "sender": "Netflix Support",
+    "address": "billing.netflix@pulse-notifications.com",
+    "subject": "URGENT: Membership Paused",
+    "preview": "Your account will be suspended in 2 HOURS. We were unable to process...",
+    "time": "10:45 AM",
+    "is_phishing": true,
+    "avatar_color": "bg-red-700 text-white",
+    "content_html": "<div style=\"font-family:sans-serif;max-width:600px;margin:0 auto;background:black;color:white;border:1px solid rgba(255,0,0,0.2);border-radius:8px\"><div style=\"padding:30px\"><h1 style=\"color:#E50914;font-size:28px;margin-bottom:20px;font-weight:900;letter-spacing:2px\">NETFLIX</h1><p style=\"font-size:18px;margin-bottom:20px\">Your account will be suspended in <span style=\"color:#E50914;font-weight:bold\">2 HOURS</span>.</p><p style=\"color:rgba(255,255,255,0.8);margin-bottom:30px\">We were unable to process your latest payment. To avoid permanent loss of your viewing history and profiles, you must update your payment method <span style=\"color:#E50914;font-weight:bold\">IMMEDIATELY</span>.</p><div style=\"text-align:center;margin-bottom:20px\"><a href=\"#\" style=\"background:#E50914;color:white;padding:15px 30px;text-decoration:none;border-radius:4px;font-weight:bold;font-size:16px\">UPDATE PAYMENT DETAILS NOW</a></div><p style=\"color:rgba(255,255,255,0.4);font-size:12px;margin-top:40px;border-top:1px solid rgba(255,255,255,0.1);padding-top:20px\">Failure to act will result in account deletion.<br>Netflix Inc.</p></div></div>",
+    "links": [
+      { "display_text": "UPDATE PAYMENT DETAILS NOW", "real_url": "http://netflix-auth-verify.com/payment", "is_dangerous": true }
+    ]
+  },
+  {
+    "id": 5,
+    "level_id": 2,
+    "sender": "State Bank of India",
+    "address": "alerts.sbi@pulse.com",
+    "subject": "ACTION REQUIRED: PAN Card Not Linked",
+    "preview": "Account Block Scheduled. Your bank account is missing mandatory KYC details...",
+    "time": "01:15 PM",
+    "is_phishing": true,
+    "avatar_color": "bg-blue-400 text-white",
+    "content_html": "<div style=\"font-family:sans-serif;max-width:600px;margin:0 auto;background:white;color:black;border-radius:8px;overflow:hidden\"><div style=\"background:#2874F0;padding:15px\"><h2 style=\"color:white;margin:0;font-family:serif\">State Bank of India</h2></div><div style=\"padding:30px\"><h3 style=\"color:#cc0000;margin-top:0\">Account Block Scheduled</h3><p>Dear Customer,</p><p>Your bank account is missing mandatory KYC details (PAN Card). As per RBI guidelines, your account will be <strong style=\"color:red\">BLOCKED IN 24 HOURS</strong>.</p><p>You must verify your details online urgently to stop the blocking process.</p><div style=\"text-align:center;margin:30px 0\"><a href=\"#\" style=\"background:#2874F0;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;font-weight:bold\">Verify KYC Online Now</a></div><p style=\"font-size:12px;color:#666\">If you do not complete this, you will not be able to withdraw funds from ATMs or make UPI payments.</p></div></div>",
+    "links": [
+      { "display_text": "Verify KYC Online Now", "real_url": "http://sbi-kyc-verify.in/steal-details", "is_dangerous": true }
+    ]
+  },
+  {
+    "id": 6,
+    "level_id": 2,
+    "sender": "Amazon India",
+    "address": "no-reply@amazon.in",
+    "subject": "Your Amazon order has shipped",
+    "preview": "Your order #402-8834211 has been shipped and is on its way...",
+    "time": "02:30 PM",
+    "is_phishing": false,
+    "avatar_color": "bg-yellow-500 text-black",
+    "content_html": "<div style=\"font-family:sans-serif;max-width:600px;margin:0 auto;background:#0A0A0A;color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden\"><div style=\"background:#FF9900;padding:20px;text-align:center\"><h2 style=\"color:black;margin:0;font-weight:900\">amazon</h2></div><div style=\"padding:30px\"><p style=\"margin-bottom:16px\">Hello,</p><p style=\"margin-bottom:16px\">Your order <strong>#402-8834211</strong> has been shipped.</p><p style=\"margin-bottom:16px\">Estimated delivery: <strong>Monday, October 14</strong></p><p style=\"margin-bottom:24px\">Carrier: Blue Dart | Tracking: BD7782910234</p><a href=\"#\" style=\"background:#FF9900;color:black;padding:10px 20px;text-decoration:none;border-radius:4px;display:inline-block;font-weight:bold\">Track Package</a></div></div>",
+    "links": [
+      { "display_text": "Track Package", "real_url": "https://www.amazon.in/gp/your-account/order-history", "is_dangerous": false }
+    ]
+  },
+  {
+    "id": 7,
+    "level_id": 2,
+    "sender": "IT Support",
+    "address": "it-support@yourcompany-helpdesk.com",
+    "subject": "Password Expiry Notice — Action Required",
+    "preview": "Your network password will expire in 2 hours. Click here to reset it now...",
+    "time": "03:50 PM",
+    "is_phishing": true,
+    "avatar_color": "bg-gray-600 text-white",
+    "content_html": "<div style=\"font-family:sans-serif;max-width:600px;margin:0 auto;background:#0A0A0A;color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:30px\"><div style=\"background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:4px;padding:12px;margin-bottom:24px\"><span style=\"color:#06b6d4;font-weight:bold\">IT Department — Security Notice</span></div><p style=\"margin-bottom:16px\">Dear alex,</p><p style=\"margin-bottom:16px\">Your network password will expire in <strong style=\"color:#f59e0b\">2 hours</strong>.</p><p style=\"margin-bottom:24px\">To avoid losing access to company systems, please reset your password immediately using the link below.</p><div style=\"text-align:center\"><a href=\"#\" style=\"background:#06b6d4;color:black;padding:12px 24px;text-decoration:none;border-radius:4px;font-weight:bold\">Reset Password Now</a></div><p style=\"font-size:12px;color:rgba(255,255,255,0.3);margin-top:24px\">IT Helpdesk — yourcompany-helpdesk.com</p></div>",
+    "links": [
+      { "display_text": "Reset Password Now", "real_url": "http://techcorp-security.com/reset-phish", "is_dangerous": true }
+    ]
+  }
+]

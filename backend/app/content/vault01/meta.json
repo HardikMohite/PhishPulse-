@@ -1,0 +1,12 @@
+{
+  "vault_id": 1,
+  "title": "Basic Email Phishing",
+  "subtitle": "Master the art of spotting sender spoofing, malicious links, and urgency-based social engineering.",
+  "tier": "FOUNDATION TIER",
+  "total_levels": 10,
+  "total_xp": 500,
+  "total_coins": 250,
+  "badge_name": "Inbox Rookie",
+  "badge_tier": "BRONZE",
+  "est_total_minutes": 45
+}

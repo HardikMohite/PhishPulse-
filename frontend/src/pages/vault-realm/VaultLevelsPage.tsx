@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Vault as VaultIcon, AlertTriangle, Swords as SwordsIcon,
   Trophy as TrophyIcon, ShoppingBag as ShoppingBagIcon, LockKeyhole,
   LogOut, HelpCircle, ChevronRight, Zap, Star, ChevronUp,
-  Shield, Lock, Play, MousePointer, Target, ArrowRight,
+  Shield, Lock, LockOpen, Play, MousePointer, Target, ArrowRight,
 } from "lucide-react";
 import VaultCube from "@/components/VaultCube";
 import CustomShield from "@/components/CustomShield";
@@ -14,11 +14,11 @@ import { logout } from "@/services/authService";
 
 // ── Vault data — fresh user: only vault 1 unlocked ───────────────────────────
 const ROADMAP_LEVELS = [
-  { id: 1, title: "Basic Email Phishing",    description: "Master the fundamentals of identifying suspicious emails, spoofed senders, and deceptive subject lines designed to trick employees.",  difficulty: "Beginner",     status: "unlocked", xpReward: 100, coinsReward: 50,  pos: { top: "38%", left: "32%" }, connectTo: 2, tag: "EMAIL"       },
-  { id: 2, title: "Spear Phishing",          description: "Identify fraudulent login pages designed to steal credentials. Learn URL inspection, visual spoofing, and domain tricks.",            difficulty: "Intermediate", status: "locked",   xpReward: 150, coinsReward: 75,  pos: { top: "62%", left: "45%" }, connectTo: 3, tag: "CREDENTIAL"  },
-  { id: 3, title: "Link Manipulation",       description: "Recognise targeted URL manipulation attacks. Decode homograph attacks, punycode domains, and redirect chains.",                      difficulty: "Advanced",     status: "locked",   xpReward: 250, coinsReward: 100, pos: { top: "38%", left: "55%" }, connectTo: 4, tag: "URL ANALYSIS" },
-  { id: 4, title: "Smishing — SMS Phishing", description: "Safely handle and identify dangerous mobile phishing attacks delivered via text message and in-app notifications.",                  difficulty: "Intermediate", status: "locked",   xpReward: 300, coinsReward: 150, pos: { top: "62%", left: "65%" }, connectTo: 5, tag: "MOBILE"      },
-  { id: 5, title: "CEO Fraud / Whaling",     description: "Defend against complex multi-stage social engineering targeting C-suite executives and financial teams.",                            difficulty: "Expert",       status: "locked",   xpReward: 500, coinsReward: 250, pos: { top: "38%", left: "75%" }, connectTo: null, tag: "EXECUTIVE"  },
+  { id: 1, title: "Basic Email Phishing",    description: "Master the fundamentals of identifying suspicious emails, spoofed senders, and deceptive subject lines designed to trick employees.",  difficulty: "Beginner",     status: "unlocked", xpReward: 100, coinsReward: 50,  pos: { top: "38%", left: "12%" }, connectTo: 2, tag: "EMAIL"       },
+  { id: 2, title: "Spear Phishing",          description: "Identify fraudulent login pages designed to steal credentials. Learn URL inspection, visual spoofing, and domain tricks.",            difficulty: "Intermediate", status: "locked",   xpReward: 150, coinsReward: 75,  pos: { top: "62%", left: "24%" }, connectTo: 3, tag: "CREDENTIAL"  },
+  { id: 3, title: "Link Manipulation",       description: "Recognise targeted URL manipulation attacks. Decode homograph attacks, punycode domains, and redirect chains.",                      difficulty: "Advanced",     status: "locked",   xpReward: 250, coinsReward: 100, pos: { top: "38%", left: "36%" }, connectTo: 4, tag: "URL ANALYSIS" },
+  { id: 4, title: "Smishing — SMS Phishing", description: "Safely handle and identify dangerous mobile phishing attacks delivered via text message and in-app notifications.",                  difficulty: "Intermediate", status: "locked",   xpReward: 300, coinsReward: 150, pos: { top: "62%", left: "48%" }, connectTo: 5, tag: "MOBILE"      },
+  { id: 5, title: "CEO Fraud / Whaling",     description: "Defend against complex multi-stage social engineering targeting C-suite executives and financial teams.",                            difficulty: "Expert",       status: "locked",   xpReward: 500, coinsReward: 250, pos: { top: "38%", left: "60%" }, connectTo: null, tag: "EXECUTIVE"  },
 ] as const;
 
 const TOTAL     = ROADMAP_LEVELS.length;
@@ -308,8 +308,15 @@ export default function VaultLevelsPage() {
             {ROADMAP_LEVELS.map(vault => (
               <motion.div
                 key={vault.id}
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
+                className="absolute"
+                style={{
+                  top: vault.pos.top,
+                  left: vault.pos.left,
+                  transform: "translate(-50%, -50%) scale(1.4)",
+                  transformOrigin: "center center",
+                }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1.4 }}
                 transition={{ delay: 0.15 + vault.id * 0.08, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 onMouseEnter={() => setSelectedVault(vault.id)}
                 onMouseLeave={() => setSelectedVault(1)}
@@ -318,10 +325,13 @@ export default function VaultLevelsPage() {
                   id={vault.id}
                   title={vault.title}
                   status={vault.status as "locked" | "unlocked"}
-                  top={vault.pos.top}
-                  left={vault.pos.left}
+                  top="0"
+                  left="0"
                   selected={selectedVault === vault.id}
-                  onClick={() => {}}
+                  onClick={() => {
+                    if (vault.status === "locked") return;
+                    if (vault.id === 1) navigate("/vault01");
+                  }}
                 />
               </motion.div>
             ))}
@@ -336,7 +346,8 @@ export default function VaultLevelsPage() {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 20, scale: 0.98 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute right-8 top-1/2 -translate-y-1/2 z-50 w-[300px]"
+                className="absolute right-8 top-8 bottom-8 z-50 w-[300px] overflow-y-auto"
+                style={{ scrollbarWidth: "none" }}
               >
                 {/* card */}
                 <div className="rounded-2xl overflow-hidden"
@@ -419,17 +430,22 @@ export default function VaultLevelsPage() {
                       whileHover={sel.status !== "locked" ? { scale: 1.02 } : {}}
                       whileTap={sel.status !== "locked" ? { scale: 0.98 } : {}}
                       disabled={sel.status === "locked"}
+                      onClick={() => {
+                        if (sel.status === "locked") return;
+                        if (sel.id === 1) navigate("/vault01");
+                        // future: else navigate(`/vault0${sel.id}`) when other vaults are built
+                      }}
                       className="w-full py-3 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all"
                       style={
                         sel.status === "locked"
                           ? { background: "rgba(15,20,30,0.8)", color: "#334155", cursor: "not-allowed", border: "1px solid rgba(51,65,85,0.2)" }
-                          : { background: "#06b6d4", color: "#000", boxShadow: "0 0 24px rgba(6,182,212,0.45)" }
+                          : { background: "transparent", color: "#06b6d4", border: "1px solid #06b6d4", boxShadow: "0 0 18px rgba(6,182,212,0.2)" }
                       }
                     >
                       {sel.status === "locked"    && <Lock size={11} />}
-                      {sel.status === "unlocked"  && <Play size={11} />}
+                      {sel.status === "unlocked"  && <LockOpen size={11} />}
                       <span>
-                        {sel.status === "locked" ? "Locked" : "Initiate Mission"}
+                        {sel.status === "locked" ? "Locked" : "Unlock Vault"}
                       </span>
                       {sel.status !== "locked" && <ArrowRight size={11} />}
                     </motion.button>

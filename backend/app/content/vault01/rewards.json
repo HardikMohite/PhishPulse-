@@ -1,0 +1,75 @@
+[
+  {
+    "level_id": 1,
+    "badge_name": null,
+    "title_unlocked": null,
+    "bonus_xp": 0,
+    "bonus_coins": 0,
+    "what_you_learned": [
+      "Phishing emails use generic greetings like 'Dear Customer'",
+      "Fake sender domains look close but are never the real company domain",
+      "Urgency and threat of account deletion are manipulation signals"
+    ]
+  },
+  {
+    "level_id": 2,
+    "badge_name": null,
+    "title_unlocked": null,
+    "bonus_xp": 0,
+    "bonus_coins": 0,
+    "what_you_learned": [
+      "Urgency language like '2 HOURS' is a FOMO tactic to bypass rational thinking",
+      "Real companies give you time — attackers never do",
+      "Pause and verify through official channels before clicking anything"
+    ]
+  },
+  {
+    "level_id": 3,
+    "badge_name": null,
+    "title_unlocked": null,
+    "bonus_xp": 0,
+    "bonus_coins": 0,
+    "what_you_learned": [
+      "Authority bias makes us comply with executives without questioning",
+      "CEO fraud requests always bypass normal approval processes",
+      "Any request for secrecy is an immediate red flag"
+    ]
+  },
+  {
+    "level_id": 4,
+    "badge_name": null,
+    "title_unlocked": null,
+    "bonus_xp": 0,
+    "bonus_coins": 0,
+    "what_you_learned": [
+      "Always hover over links before clicking to see the real destination",
+      "Lookalike domains swap one letter or use a different TLD",
+      "Display text can say anything — the URL is what matters"
+    ]
+  },
+  {
+    "level_id": 5,
+    "badge_name": null,
+    "title_unlocked": null,
+    "bonus_xp": 0,
+    "bonus_coins": 0,
+    "what_you_learned": [
+      "Executable files (.exe, .bat, .ps1) should never arrive via email",
+      "Even .docx and .pdf can carry malicious macros — enable macros only when expected",
+      "Unexpected attachments from unknown senders are always suspicious"
+    ]
+  },
+  {
+    "level_id": 10,
+    "badge_name": "Inbox Rookie",
+    "badge_tier": "BRONZE",
+    "title_unlocked": "Phish Spotter",
+    "bonus_xp": 100,
+    "bonus_coins": 50,
+    "what_you_learned": [
+      "You can identify all major phishing attack vectors",
+      "Slow down and verify — your best defence is a second of thought",
+      "Real urgency never comes via email"
+    ]
+  }
+]

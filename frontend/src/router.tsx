@@ -11,6 +11,9 @@ import LeaderboardPage from "@/pages/leaderboard/LeaderboardPage";
 import HubPage from "@/pages/HubPage";
 import VaultLevelsPage from "@/pages/vault-realm/VaultLevelsPage";
 
+// ── Vault 01 ──────────────────────────────────────────────────────────────────
+import Vault01Page from "@/features/vault01/pages/Vault01Page";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -43,6 +46,11 @@ const router = createBrowserRouter([
   {
     path: "/vault-realm",
     element: <ProtectedRoute><VaultLevelsPage /></ProtectedRoute>,
+  },
+  // ── Vault 01 — feature page (no separate App.tsx) ─────────────────────────
+  {
+    path: "/vault01",
+    element: <ProtectedRoute><Vault01Page /></ProtectedRoute>,
   },
   {
     path: "/ctf",

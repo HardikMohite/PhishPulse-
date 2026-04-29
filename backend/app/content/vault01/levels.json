@@ -1,0 +1,462 @@
+[
+  {
+    "id": 1,
+    "name": "The Hook",
+    "concept": "Social Engineering",
+    "description": "Learn to recognise the basic building blocks of a phishing email — fake senders, generic greetings, and bait subject lines.",
+    "difficulty": "Beginner",
+    "tag": "EMAIL",
+    "email_count": 3,
+    "xp_reward": 30,
+    "coins_reward": 15,
+    "est_minutes": 3,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "What Is a Phishing Email?",
+        "subtitle": "Concept 1 of 3",
+        "body": "Phishing is when an attacker disguises themselves as a trusted person or company to trick you into giving up information or clicking a dangerous link.",
+        "analogy": "Like a fraudster in a uniform knocking on your door claiming to be from your bank — the uniform looks real, but something feels slightly off.",
+        "icon_hint": "mail"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Real vs Fake",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "Hi Raj, your account statement for October is attached. No action needed.",
+        "phishing_example": "Dear Customer, your account has been flagged. CLICK HERE immediately to avoid suspension."
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which greeting is a red flag?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "Which of these email greetings is most likely from a phishing attack?",
+        "quiz_options": [
+          { "id": "A", "text": "Hi Priya, hope your week is going well", "is_correct": false },
+          { "id": "B", "text": "Dear Valued Customer, urgent action required", "is_correct": true },
+          { "id": "C", "text": "Hello team, please find the meeting notes attached", "is_correct": false },
+          { "id": "D", "text": "Hi, this is a follow-up to our call yesterday", "is_correct": false }
+        ],
+        "correct_explanation": "B uses a generic salutation and urgency — classic phishing signals. Legitimate companies address you by name.",
+        "incorrect_explanation": "That looks like a normal email. Look for the option with both a generic greeting AND urgency language."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Urgent Action",
+    "concept": "FOMO Tactics",
+    "description": "Understand why urgency is the most effective phishing weapon and how to pause before reacting.",
+    "difficulty": "Beginner",
+    "tag": "URGENCY",
+    "email_count": 4,
+    "xp_reward": 40,
+    "coins_reward": 20,
+    "est_minutes": 4,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "What Is Urgency Manipulation?",
+        "subtitle": "Concept 1 of 3",
+        "body": "Phishing campaigns rely on creating a false sense of urgency. When faced with a perceived crisis or limited-time offer, the human brain switches from logical analysis to reactive instinct.",
+        "analogy": "Like a fake sale countdown timer that says '2 items left!' to make you buy fast. Attackers use 'Account suspended in 2 hours' so you click without checking the sender.",
+        "icon_hint": "clock"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Calm vs Urgent",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "Your renewal is due next month. No action needed right now.",
+        "phishing_example": "URGENT!! Account SUSPENDED in 2 HOURS. Click IMMEDIATELY or lose access FOREVER."
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which subject line is a red flag?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "Which of these email subject lines is most likely from a phishing attack?",
+        "quiz_options": [
+          { "id": "A", "text": "Your October statement is ready", "is_correct": false },
+          { "id": "B", "text": "URGENT: Account expires in 60 MINUTES — Act NOW", "is_correct": true },
+          { "id": "C", "text": "Your order has been shipped", "is_correct": false },
+          { "id": "D", "text": "Welcome to our newsletter", "is_correct": false }
+        ],
+        "correct_explanation": "B uses extreme urgency to force you into acting without verifying the sender. Legitimate services will not impose 60-minute account bans.",
+        "incorrect_explanation": "That is a normal transactional email. Look for the option trying to cause panic."
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "CEO Fraud",
+    "concept": "Authority Bias",
+    "description": "Learn how attackers impersonate executives and authority figures to bypass your natural scepticism.",
+    "difficulty": "Intermediate",
+    "tag": "AUTHORITY",
+    "email_count": 4,
+    "xp_reward": 50,
+    "coins_reward": 25,
+    "est_minutes": 4,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "Why Authority Works",
+        "subtitle": "Concept 1 of 3",
+        "body": "People are wired to comply with authority figures. Attackers exploit this by impersonating CEOs, IT teams, or government bodies to make their requests feel non-negotiable.",
+        "analogy": "If someone in a security uniform tells you to evacuate, you do it without questioning — attackers wear digital uniforms using familiar logos and executive names.",
+        "icon_hint": "shield"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Real Boss vs Fake Boss",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "Hi team, reminder that Q3 reports are due by Friday. Let me know if you need help.",
+        "phishing_example": "This is the CEO. I need you to purchase ₹50,000 in gift cards RIGHT NOW for a client deal. Do not tell anyone. Reply only to me."
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which email is CEO fraud?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "Your CEO sends you an email. Which one is the impersonation attack?",
+        "quiz_options": [
+          { "id": "A", "text": "Please review the attached board meeting minutes", "is_correct": false },
+          { "id": "B", "text": "Wire ₹2,00,000 to this vendor today — confidential, do not loop in finance", "is_correct": true },
+          { "id": "C", "text": "Can you set up a meeting with the marketing team next week?", "is_correct": false },
+          { "id": "D", "text": "I approved your leave request, HR will confirm", "is_correct": false }
+        ],
+        "correct_explanation": "B is a classic BEC (Business Email Compromise) — secrecy + urgency + bypassing normal approval = fraud.",
+        "incorrect_explanation": "That sounds like a normal work email. Watch for requests that bypass normal process and demand secrecy."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Ghost Links",
+    "concept": "URL Masking",
+    "description": "Train your eye to spot links that display one thing but point to something dangerous.",
+    "difficulty": "Intermediate",
+    "tag": "URL",
+    "email_count": 5,
+    "xp_reward": 60,
+    "coins_reward": 30,
+    "est_minutes": 5,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "Links Can Lie",
+        "subtitle": "Concept 1 of 3",
+        "body": "A hyperlink has two parts: the display text you see, and the destination URL it actually goes to. Attackers make the display text look safe while the real URL goes somewhere malicious.",
+        "analogy": "Like a road sign that says 'Airport →' but actually leads you to a dead end. The sign looks official, but the destination is wrong.",
+        "icon_hint": "link"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Safe Link vs Ghost Link",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "Click here to reset your password → goes to accounts.google.com/reset",
+        "phishing_example": "Click here to reset your password → actually goes to g00gle-accounts-reset.ru"
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which URL is dangerous?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "You hover over a link labelled 'Login to your SBI account'. Which destination is suspicious?",
+        "quiz_options": [
+          { "id": "A", "text": "https://onlinesbi.sbi.co.in/login", "is_correct": false },
+          { "id": "B", "text": "https://sbi-secure-login.net/verify", "is_correct": true },
+          { "id": "C", "text": "https://www.sbi.co.in/portal/web/guest/home", "is_correct": false },
+          { "id": "D", "text": "https://retail.onlinesbi.com/personal/index.htm", "is_correct": false }
+        ],
+        "correct_explanation": "B uses a fake domain 'sbi-secure-login.net' — not the real sbi.co.in. Real SBI will never ask you to login via a third-party domain.",
+        "incorrect_explanation": "That URL belongs to SBI's actual domain. The dangerous one uses a lookalike domain designed to fool you."
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "File Trap",
+    "concept": "Malicious Attachments",
+    "description": "Learn which file types attackers use and why you should never open unexpected attachments.",
+    "difficulty": "Intermediate",
+    "tag": "ATTACHMENT",
+    "email_count": 4,
+    "xp_reward": 60,
+    "coins_reward": 30,
+    "est_minutes": 4,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "Attachments as Weapons",
+        "subtitle": "Concept 1 of 3",
+        "body": "Files can carry malicious code. When you open an infected attachment, it can silently install malware, ransomware, or keyloggers on your device without you knowing.",
+        "analogy": "Like accepting a gift-wrapped package from a stranger — the wrapping looks normal but the contents are dangerous.",
+        "icon_hint": "paperclip"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Safe Attachment vs Dangerous",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "Hi, attached is the PDF invoice you requested. Invoice_Oct2025.pdf (from your actual vendor)",
+        "phishing_example": "Your parcel is delayed. Open the attached document to track it. Tracking_Update.exe"
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which attachment is dangerous?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "You receive an unexpected email. Which attachment should you NEVER open?",
+        "quiz_options": [
+          { "id": "A", "text": "Q3_Report.pdf from your finance team's known email", "is_correct": false },
+          { "id": "B", "text": "Invoice.exe from an unknown vendor", "is_correct": true },
+          { "id": "C", "text": "Meeting_Notes.docx from your manager", "is_correct": false },
+          { "id": "D", "text": "Logo.png from your design team", "is_correct": false }
+        ],
+        "correct_explanation": "B is an .exe file — executable programs should never arrive via email. Legitimate invoices are PDFs, not programs.",
+        "incorrect_explanation": "That file type looks normal. The dangerous one is a program disguised as a document."
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Credential Harvest",
+    "concept": "Login Spoofing",
+    "description": "Identify fake login pages designed to steal your username and password.",
+    "difficulty": "Advanced",
+    "tag": "CREDENTIAL",
+    "email_count": 6,
+    "xp_reward": 80,
+    "coins_reward": 40,
+    "est_minutes": 6,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "The Fake Login Trap",
+        "subtitle": "Concept 1 of 3",
+        "body": "Credential harvesting pages are perfect pixel-for-pixel copies of real login pages. Once you enter your details, they are sent directly to the attacker. The page may even redirect you to the real site after, so you never suspect anything.",
+        "analogy": "Like a fake ATM machine installed over a real one — you insert your card, enter your PIN, and it captures everything while showing a normal 'Transaction complete' screen.",
+        "icon_hint": "lock"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Real Login vs Harvester",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "URL: https://accounts.google.com — padlock shows valid certificate for google.com",
+        "phishing_example": "URL: https://accounts-google-signin.com — looks identical but the domain is not google.com"
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Spot the fake login page",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "You click a link and see a Microsoft login page. Which URL confirms it is real?",
+        "quiz_options": [
+          { "id": "A", "text": "https://microsoft-login-secure.com/signin", "is_correct": false },
+          { "id": "B", "text": "https://login.microsoftonline.com", "is_correct": true },
+          { "id": "C", "text": "https://microsoft.account-verify.net", "is_correct": false },
+          { "id": "D", "text": "https://microsoftonline.login-portal.com", "is_correct": false }
+        ],
+        "correct_explanation": "B is Microsoft's actual authentication domain. All others use lookalike domains designed to steal your password.",
+        "incorrect_explanation": "Look at the base domain carefully. Only microsoftonline.com belongs to Microsoft — everything else is a trap."
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Supply Chain",
+    "concept": "Vendor Compromise",
+    "description": "Detect attacks that come through trusted third-party vendors and partners.",
+    "difficulty": "Advanced",
+    "tag": "VENDOR",
+    "email_count": 5,
+    "xp_reward": 80,
+    "coins_reward": 40,
+    "est_minutes": 5,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "Attacks Through Trusted Vendors",
+        "subtitle": "Concept 1 of 3",
+        "body": "Supply chain attacks happen when an attacker compromises a vendor or partner you already trust. The email comes from a real vendor's domain — but their account has been hacked and is now being used to attack you.",
+        "analogy": "Like a trusted delivery driver who has been bribed to smuggle something into your building. You let them in because you know their face, not knowing they've been compromised.",
+        "icon_hint": "target"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Normal Vendor vs Compromised Vendor",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "Hi, here is the updated contract we discussed on the call. No rush, review when you can.",
+        "phishing_example": "Hi, I am resending the invoice — our banking details have changed. Please update immediately and send the transfer today."
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which vendor email is suspicious?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "You receive an email from a real vendor you work with. Which one is suspicious?",
+        "quiz_options": [
+          { "id": "A", "text": "Sending across the updated project timeline as discussed", "is_correct": false },
+          { "id": "B", "text": "Our bank account has changed — please transfer this month's payment to a new account today", "is_correct": true },
+          { "id": "C", "text": "Following up on last week's delivery — please confirm receipt", "is_correct": false },
+          { "id": "D", "text": "Sharing the revised scope of work document", "is_correct": false }
+        ],
+        "correct_explanation": "B is a classic bank detail change fraud. Always verify bank account changes via phone — never via email alone.",
+        "incorrect_explanation": "Normal vendor communication. The red flag is an unexpected request to change payment details."
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Hidden Tracking",
+    "concept": "Pixel Spycraft",
+    "description": "Understand how attackers use invisible tracking pixels to gather intelligence before a targeted attack.",
+    "difficulty": "Advanced",
+    "tag": "TRACKING",
+    "email_count": 3,
+    "xp_reward": 80,
+    "coins_reward": 40,
+    "est_minutes": 4,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "The Invisible Pixel",
+        "subtitle": "Concept 1 of 3",
+        "body": "A tracking pixel is a 1x1 invisible image embedded in an email. When you open the email, your device automatically downloads the image, revealing your IP address, device type, location, and the exact time you opened it — all without you clicking anything.",
+        "analogy": "Like a camera hidden in a piece of paper. The moment you unfold it and look at it, it photographs you without you realising.",
+        "icon_hint": "eye"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Normal Email vs Tracked Email",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "Monthly newsletter from a company you subscribed to — tracking pixels here are normal for open-rate statistics",
+        "phishing_example": "An unsolicited email from an unknown sender that has no real content — purely designed to confirm your email is active and gather your device info"
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which email is a tracking trap?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "Which email is most likely sent purely to track you?",
+        "quiz_options": [
+          { "id": "A", "text": "Weekly digest from a newsletter you signed up for", "is_correct": false },
+          { "id": "B", "text": "A blank email with subject 'Delivery Notification' from an unknown sender", "is_correct": true },
+          { "id": "C", "text": "Order confirmation from a shop you just bought from", "is_correct": false },
+          { "id": "D", "text": "Invoice from your regular vendor", "is_correct": false }
+        ],
+        "correct_explanation": "B has no real content — it exists only to be opened, triggering a tracking pixel that confirms your email is active and logs your location.",
+        "incorrect_explanation": "That email has a legitimate reason to exist. The tracking trap is an email with no real purpose except to be opened."
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Data Leak",
+    "concept": "Extortion Tactics",
+    "description": "Learn how attackers use fear of personal data exposure to extort victims into paying.",
+    "difficulty": "Expert",
+    "tag": "EXTORTION",
+    "email_count": 5,
+    "xp_reward": 100,
+    "coins_reward": 50,
+    "est_minutes": 5,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "The Sextortion Script",
+        "subtitle": "Concept 1 of 3",
+        "body": "Extortion phishing emails claim to have compromising data — your passwords, browsing history, or camera footage — and threaten to expose it unless you pay. Most of the time, the attacker has nothing. They obtained a leaked old password to appear credible.",
+        "analogy": "Like someone knocking on your door saying they filmed you through your window and demanding money — 99% of the time they are bluffing, but fear makes people pay.",
+        "icon_hint": "alert"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Security Alert vs Extortion",
+        "subtitle": "Spot the Difference 2 of 3",
+        "legitimate_example": "We detected a login attempt on your account from a new device. If this wasn't you, please reset your password.",
+        "phishing_example": "I have recorded you through your webcam. Send 0.05 BTC to this address within 48 hours or I will send the video to all your contacts."
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Which is a scam?",
+        "subtitle": "Interactive Quiz 3 of 3",
+        "quiz_question": "Which of these emails is an extortion scam?",
+        "quiz_options": [
+          { "id": "A", "text": "Your password was found in a data breach — here is how to secure your account", "is_correct": false },
+          { "id": "B", "text": "I have your old password. Pay me in crypto or I release your webcam footage", "is_correct": true },
+          { "id": "C", "text": "Your account was accessed from a new location — verify it was you", "is_correct": false },
+          { "id": "D", "text": "Two-factor authentication is now required for your account", "is_correct": false }
+        ],
+        "correct_explanation": "B is a sextortion scam. The old password makes it look real but it is from a public data breach. Delete and ignore — never pay.",
+        "incorrect_explanation": "That is a legitimate security notification. The scam is the one demanding crypto payment with a threat."
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "The Final Test",
+    "concept": "Vault Graduation",
+    "description": "A mixed inbox containing all attack types from the vault. No hints. No safety net. Prove you are ready.",
+    "difficulty": "Expert",
+    "tag": "GRADUATION",
+    "email_count": 10,
+    "xp_reward": 120,
+    "coins_reward": 60,
+    "est_minutes": 10,
+    "teaching_steps": [
+      {
+        "step": 1,
+        "type": "concept",
+        "title": "The Final Briefing",
+        "subtitle": "Review 1 of 3",
+        "body": "You have trained through 9 levels. You have seen urgency manipulation, CEO fraud, ghost links, malicious attachments, credential harvesting, supply chain attacks, tracking pixels, and extortion. Now all of them appear in a single inbox.",
+        "analogy": "This is your black belt test. No sparring partner tells you which move is coming — you read the situation and react correctly.",
+        "icon_hint": "trophy"
+      },
+      {
+        "step": 2,
+        "type": "comparison",
+        "title": "Mixed Signals",
+        "subtitle": "Review 2 of 3",
+        "legitimate_example": "A well-formatted email from a known sender with a relevant subject, no urgent demands, and a link that matches the company's real domain.",
+        "phishing_example": "A professional-looking email with the right logo and signature — but the sender domain has one letter swapped and the link leads somewhere unexpected."
+      },
+      {
+        "step": 3,
+        "type": "quiz",
+        "title": "Final check — what is your defence?",
+        "subtitle": "Final Quiz 3 of 3",
+        "quiz_question": "When you are unsure if an email is legitimate, what is the correct first action?",
+        "quiz_options": [
+          { "id": "A", "text": "Click the link but don't enter any information", "is_correct": false },
+          { "id": "B", "text": "Contact the sender through a separate verified channel to confirm", "is_correct": true },
+          { "id": "C", "text": "Forward it to a colleague to check", "is_correct": false },
+          { "id": "D", "text": "Mark it as spam and forget it", "is_correct": false }
+        ],
+        "correct_explanation": "B is the gold standard. Verify through a known phone number or official website — never through contact details in the suspicious email itself.",
+        "incorrect_explanation": "That could still expose you or others. The safest action is always to verify through a separate trusted channel."
+      }
+    ]
+  }
+]

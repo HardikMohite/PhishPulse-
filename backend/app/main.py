@@ -14,15 +14,18 @@ from app.database import init_db
 from app.utils.session_manager import session_manager
 from app.routers import auth_router, ctf_router, leaderboard_router
 
+# ── Vault modules ─────────────────────────────────────────────────────────────
+from app.modules.vault01 import router as vault01_router
 
-# ── Lifespan (startup / shutdown) ────────────────────────────────────────────
+
+# ── Lifespan (startup / shutdown) ─────────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Runs once on startup, then yields, then runs on shutdown.
     """
-    # ── Startup ──────────────────────────────────────────────────────────────
+    # ── Startup ───────────────────────────────────────────────────────────────
     print("\n" + "=" * 60)
     print(f"  {settings.APP_NAME}")
     print(f"  Environment : {'DEVELOPMENT' if settings.DEBUG else 'PRODUCTION'}")
@@ -30,7 +33,7 @@ async def lifespan(app: FastAPI):
     print(f"  Frontend    : {settings.FRONTEND_URL}")
     print("=" * 60 + "\n")
 
-    # Initialise database (creates tables if they don't exist)
+    # Initialise database (creates tables including vault_progress)
     init_db()
     print("[DB] Tables initialised.")
 
@@ -40,7 +43,7 @@ async def lifespan(app: FastAPI):
 
     yield  # ← application runs here
 
-    # ── Shutdown ─────────────────────────────────────────────────────────────
+    # ── Shutdown ──────────────────────────────────────────────────────────────
     cleanup_task.cancel()
     try:
         await cleanup_task
@@ -52,10 +55,9 @@ async def lifespan(app: FastAPI):
 async def _session_cleanup_loop():
     """
     Background coroutine: purge expired registration sessions every 5 minutes.
-    Keeps memory lean without requiring Redis or an external scheduler.
     """
     while True:
-        await asyncio.sleep(5 * 60)  # every 5 minutes
+        await asyncio.sleep(5 * 60)
         removed = session_manager.cleanup_expired_sessions()
         if removed:
             print(f"[SESSION CLEANUP] Removed {removed} expired session(s).")
@@ -69,63 +71,57 @@ def create_app() -> FastAPI:
         description=(
             "PhishPulse API — Cybersecurity awareness and gamification platform.\n\n"
             "Provides authentication (JWT via httpOnly cookie), CTF challenges, "
-            "leaderboard, and user gamification endpoints."
+            "leaderboard, vault training, and user gamification endpoints."
         ),
         version="1.0.0",
-        docs_url="/docs" if settings.DEBUG else None,       # Disable Swagger in prod
+        docs_url="/docs" if settings.DEBUG else None,
         redoc_url="/redoc" if settings.DEBUG else None,
         openapi_url="/openapi.json" if settings.DEBUG else None,
         lifespan=lifespan,
     )
 
-    # ── CORS ─────────────────────────────────────────────────────────────────
-    # Allow the frontend origin plus any extras defined in config.
+    # ── CORS ──────────────────────────────────────────────────────────────────
     cors_origins = list({settings.FRONTEND_URL, *settings.BACKEND_CORS_ORIGINS})
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_origins,
-        allow_credentials=True,          # Required for httpOnly cookie auth
+        allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # ── Global exception handler ──────────────────────────────────────────────
+    # ── Global exception handler ───────────────────────────────────────────────
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
-        """
-        Catch-all for unhandled exceptions.
-        Returns a clean JSON error instead of a 500 HTML page.
-        """
         print(f"[UNHANDLED ERROR] {request.method} {request.url.path} → {exc}")
         return JSONResponse(
             status_code=500,
             content={"detail": "An internal server error occurred. Please try again later."},
         )
 
-    # ── Health check ──────────────────────────────────────────────────────────
+    # ── Health check ───────────────────────────────────────────────────────────
     @app.get("/health", tags=["system"], summary="Health check")
     def health():
-        """
-        Simple liveness probe.
-        Returns 200 when the server is running — used by load-balancers / Docker HEALTHCHECK.
-        """
         return {
             "status": "ok",
             "app": settings.APP_NAME,
             "debug": settings.DEBUG,
         }
 
-    # ── Root redirect to docs ─────────────────────────────────────────────────
+    # ── Root ───────────────────────────────────────────────────────────────────
     @app.get("/", tags=["system"], include_in_schema=False)
     def root():
         if settings.DEBUG:
             return {"message": f"Welcome to {settings.APP_NAME}. Docs at /docs"}
         return {"message": f"Welcome to {settings.APP_NAME}."}
 
-    # ── Routers ───────────────────────────────────────────────────────────────
+    # ── Existing routers ───────────────────────────────────────────────────────
     app.include_router(auth_router.router,        prefix=settings.API_V1_PREFIX)
     app.include_router(ctf_router.router,         prefix=settings.API_V1_PREFIX)
     app.include_router(leaderboard_router.router, prefix=settings.API_V1_PREFIX)
+
+    # ── Vault modules ──────────────────────────────────────────────────────────
+    app.include_router(vault01_router.router,     prefix=settings.API_V1_PREFIX)
 
     return app
 
