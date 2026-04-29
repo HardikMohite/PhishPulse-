@@ -53,42 +53,32 @@ a:hover {
   color: #535bf2;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: hsl(var(--card));
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: hsl(var(--primary));
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
+@layer base {
+  button {
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: transparent;
+    /* Use transparent border so Tailwind border-color utilities work without layout shift */
+    border: 1px solid transparent;
+    padding: 0;
+    cursor: pointer;
+  }
+  button:focus,
+  button:focus-visible {
+    outline: none;
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 }
 
 input {
   font-family: inherit;
 }
 
-/* Remove the duplicate :root/light overrides and rely on the @layer base tokens and .dark class.
-   If you want automatic system preference, add a small rule to set the light tokens when prefers-color-scheme: light. */
-@media (prefers-color-scheme: light) {
-  :root {
-    /* This will keep behavior consistent if no .dark class is applied */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-  }
-}
+/* Dark mode is enforced via class="dark" on <html>. No system preference override needed. */
 
 @layer base {
   :root {
@@ -145,3 +135,57 @@ input {
     --chart-5: 340 75% 55%;
   }
 }
+
+/* ── Utility classes ──────────────────────────────────────────────────────── */
+.glass {
+  background: rgba(26, 26, 46, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.grid-bg {
+  background-image: linear-gradient(rgba(6,182,212,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,182,212,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.mesh-glow {
+  background: radial-gradient(circle at 10% 20%, rgba(123,104,238,0.15) 0%, transparent 40%),
+              radial-gradient(circle at 90% 80%, rgba(6,182,212,0.15) 0%, transparent 40%);
+}
+.pulse-cyan {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+}
+.hex-shape {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* ── Keyframes & animation classes ───────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(5deg); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer { animation: shimmer 3s infinite linear; }
+
+@keyframes scanline {
+  0% { transform: translateY(-100vh); }
+  100% { transform: translateY(100vh); }
+}
+.animate-scanline { animation: scanline 6s linear infinite; }
+
+@keyframes shrink {
+  from { transform: scaleX(1); transform-origin: left; }
+  to { transform: scaleX(0); transform-origin: left; }
+}
+.animate-shrink { animation: shrink 3s linear forwards; }
+
+@keyframes bounce-in {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-bounce-in { animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }

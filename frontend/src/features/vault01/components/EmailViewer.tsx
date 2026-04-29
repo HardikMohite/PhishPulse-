@@ -46,6 +46,19 @@ interface EmailViewerProps {
   totalCount: number;
 }
 
+/** Strip white/light backgrounds and dark text colors from inline styles in email HTML */
+function sanitizeEmailHtml(html: string): string {
+  return html
+    .replace(/background\s*:\s*(white|#fff|#ffffff|#FFF|#FFFFFF)\b/gi, 'background:#151929')
+    .replace(/background-color\s*:\s*(white|#fff|#ffffff|#FFF|#FFFFFF)\b/gi, 'background-color:#151929')
+    .replace(/\bcolor\s*:\s*black\b/gi, 'color:rgba(255,255,255,0.85)')
+    .replace(/\bcolor\s*:\s*#000\b/gi, 'color:rgba(255,255,255,0.85)')
+    .replace(/\bcolor\s*:\s*#000000\b/gi, 'color:rgba(255,255,255,0.85)')
+    .replace(/\bcolor\s*:\s*#333\b/gi, 'color:rgba(255,255,255,0.7)')
+    .replace(/\bcolor\s*:\s*#666\b/gi, 'color:rgba(255,255,255,0.4)')
+    .replace(/bgcolor\s*=\s*["']?(white|#fff|#ffffff)["']?/gi, 'bgcolor="#151929"');
+}
+
 export default function EmailViewer({
   email,
   emails,
@@ -103,14 +116,14 @@ export default function EmailViewer({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#202124] relative w-full">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#1a1f2e] relative w-full">
 
       {/* ── Action toolbar ──────────────────────────────────────────────── */}
-      <div className="flex items-center h-16 px-3 border-b border-[#3c4043] shrink-0">
+      <div className="flex items-center h-16 px-3 border-b border-[#2d3452] shrink-0">
         <div className="flex items-center gap-0">
           <button
             onClick={onBack}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors mr-1"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors mr-1"
             title="Back"
           >
             <ArrowLeft className="w-5 h-5 text-[#9aa0a6]" />
@@ -119,7 +132,7 @@ export default function EmailViewer({
             <button
               key={i}
               onClick={() => onShowToast('Action disabled in simulation mode.')}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors"
             >
               <Icon className="w-5 h-5 text-[#9aa0a6]" />
             </button>
@@ -133,20 +146,20 @@ export default function EmailViewer({
           <button
             onClick={onPrev}
             disabled={currentIndex === 0}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors disabled:opacity-30"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors disabled:opacity-30"
           >
             <ChevronRight className="w-5 h-5 rotate-180" />
           </button>
           <button
             onClick={onNext}
             disabled={currentIndex === totalCount - 1}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors disabled:opacity-30"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors disabled:opacity-30"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
           <button
             onClick={() => onShowToast('More options disabled in simulation.')}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors ml-1"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors ml-1"
           >
             <MoreVertical className="w-5 h-5 text-[#9aa0a6]" />
           </button>
@@ -185,16 +198,16 @@ export default function EmailViewer({
                 </div>
                 <div className="flex items-center gap-1 shrink-0 text-[#9aa0a6]">
                   <span className="text-xs whitespace-nowrap mr-2">{email.time} (1 hour ago)</span>
-                  <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors">
+                  <button className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors">
                     <Star className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onShowToast('Reply is disabled in simulation mode.')}
-                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors"
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
-                  <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors">
+                  <button className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-cyan-400/30 hover:bg-[#3c4043] hover:border-cyan-400/60 transition-colors">
                     <MoreVertical className="w-4 h-4" />
                   </button>
                 </div>
@@ -213,7 +226,7 @@ export default function EmailViewer({
             onMouseOver={handleMouseOver}
             onMouseOut={handleMouseOut}
             onMouseMove={handleMouseMove}
-            dangerouslySetInnerHTML={{ __html: email.content_html }}
+            dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(email.content_html) }}
           />
 
           {/* Reply / Forward (disabled) */}
@@ -233,36 +246,36 @@ export default function EmailViewer({
       </div>
 
       {/* ── Decision bar ────────────────────────────────────────────────── */}
-      <div className="absolute bottom-0 inset-x-0 bg-[#202124]/95 border-t border-[#3c4043] backdrop-blur-sm px-4 py-3 z-40">
+      <div className="absolute bottom-0 inset-x-0 bg-[#1a1f2e]/95 border-t border-[#2d3452] backdrop-blur-sm px-4 py-3 z-40">
         <div className="max-w-[500px] mx-auto space-y-2">
           <div className="flex justify-center">
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#9aa0a6] bg-[#303134] border border-[#5f6368] px-4 py-1.5 rounded-full">
+            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-cyan-400/70 bg-cyan-400/5 border border-cyan-400/20 px-4 py-1.5 rounded-full">
               <CustomShield size={14} className="text-cyan-400" strokeWidth={1.5} />
               {isAnswered ? 'You already classified this email' : 'Inspect links before deciding'}
             </span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => !isAnswered && onAnswer(email.id, false)}
               disabled={isAnswered}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-black text-sm uppercase tracking-wide transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm uppercase tracking-wide transition-all ${
                 isAnswered
-                  ? 'border-white/10 text-white/20 cursor-not-allowed'
-                  : 'border-green-500/60 text-green-400 hover:bg-green-400/10'
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : 'bg-green-500/20 border border-green-500/40 text-green-400 hover:bg-green-500/30 hover:border-green-400/60 shadow-[0_0_12px_rgba(34,197,94,0.15)]'
               }`}
             >
-              <CheckCircle2 className="w-5 h-5" /> Safe
+              <CheckCircle2 className="w-4 h-4" /> Safe
             </button>
             <button
               onClick={() => !isAnswered && onAnswer(email.id, true)}
               disabled={isAnswered}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-black text-sm uppercase tracking-wide transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm uppercase tracking-wide transition-all ${
                 isAnswered
-                  ? 'border-white/10 text-white/20 cursor-not-allowed'
-                  : 'border-red-500/60 text-red-400 hover:bg-red-400/10'
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                  : 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 hover:border-red-400/60 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
               }`}
             >
-              <AlertTriangle className="w-5 h-5" /> Phishing
+              <AlertTriangle className="w-4 h-4" /> Phishing
             </button>
           </div>
         </div>

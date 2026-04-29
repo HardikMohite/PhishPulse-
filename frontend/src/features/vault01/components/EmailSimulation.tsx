@@ -85,7 +85,7 @@ export default function EmailSimulation({
 
       {/* ── Gmail top header ──────────────────────────────────────────── */}
       <div className="flex items-center h-16 px-4 gap-3 shrink-0 bg-[#202124] border-b border-[#3c4043]">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors shrink-0">
+        <button className="w-10 h-10 flex items-center justify-center rounded-full bg-transparent hover:bg-[#3c4043] transition-colors shrink-0">
           <Menu className="w-5 h-5 text-[#e3e3e3]" />
         </button>
 
@@ -143,15 +143,15 @@ export default function EmailSimulation({
         {/* Left sidebar */}
         <div className="w-[256px] shrink-0 flex flex-col pt-2 overflow-y-auto hidden md:flex bg-[#202124]">
           {/* Compose button */}
-          <div className="px-4 mb-1">
+          <div className="px-2 mb-2">
             <button
               onClick={() => onShowToast('Compose is disabled in simulation mode.')}
-              className="flex items-center gap-3 bg-[#c2e7ff] hover:shadow-md active:bg-[#a8cfee] text-[#001d35] rounded-2xl pl-4 pr-6 py-4 w-auto transition-all cursor-not-allowed"
+              className="flex items-center gap-3 bg-[#c2e7ff] hover:bg-[#d3eeff] active:bg-[#a8cfee] text-[#001d35] rounded-[18px] pl-4 pr-8 h-[56px] w-auto transition-all cursor-not-allowed shadow-[0_1px_3px_rgba(0,0,0,0.3),0_4px_8px_rgba(0,0,0,0.2)] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_6px_12px_rgba(0,0,0,0.25)]"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="#001d35" />
               </svg>
-              <span className="font-semibold text-[15px]">Compose</span>
+              <span className="font-medium text-[14px] tracking-wide">Compose</span>
             </button>
           </div>
 
@@ -167,7 +167,7 @@ export default function EmailSimulation({
               <div
                 key={label}
                 onClick={active ? undefined : () => onShowToast(`${label} is disabled in simulation mode.`)}
-                className={`flex items-center justify-between pl-6 pr-4 py-1 rounded-r-full cursor-pointer transition-colors h-8 ${
+                className={`flex items-center justify-between pl-6 pr-4 rounded-r-full cursor-pointer transition-colors h-[32px] ${
                   active ? 'bg-[#414549] font-semibold' : 'hover:bg-[#35363a]'
                 }`}
               >
@@ -199,17 +199,17 @@ export default function EmailSimulation({
         </div>
 
         {/* Email list */}
-        <div className={`flex flex-col bg-[#202124] min-h-0 ${selectedEmailId ? 'hidden' : 'flex-1'}`}>
+        <div className={`flex flex-col bg-[#202124] min-h-0 ${selectedEmailId ? 'hidden' : 'flex-1 w-full'}`}>
           {/* Toolbar */}
           <div className="flex items-center h-14 px-4 gap-2 border-b border-[#3c4043] shrink-0 bg-[#202124]">
             <div className="flex items-center gap-0.5">
               <div className="w-4 h-4 border-2 border-[#9aa0a6] rounded-sm cursor-pointer hover:border-[#e3e3e3] transition-colors" />
               <ChevronRight className="w-3.5 h-3.5 text-[#9aa0a6] rotate-90 cursor-pointer" />
             </div>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors ml-1">
+            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent hover:bg-[#3c4043] transition-colors ml-1">
               <RotateCcw className="w-4 h-4 text-[#9aa0a6]" />
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#3c4043] transition-colors">
+            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent hover:bg-[#3c4043] transition-colors">
               <MoreVertical className="w-4 h-4 text-[#9aa0a6]" />
             </button>
             <div className="flex-1" />
@@ -218,18 +218,30 @@ export default function EmailSimulation({
 
           {/* Tabs */}
           <div className="flex border-b border-[#3c4043] shrink-0 bg-[#202124]">
-            <button className="flex items-center gap-2 px-6 py-3 border-b-2 border-[#8ab4f8] text-[#8ab4f8] text-sm font-medium">
+            <button className="flex items-center gap-2 px-4 py-3 border-b-2 border-[#8ab4f8] text-[#8ab4f8] text-sm font-medium">
               <Inbox className="w-4 h-4" /> Primary
             </button>
-            {['Promotions', 'Social'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => onShowToast(`${tab} tab is disabled in simulation mode.`)}
-                className="flex items-center gap-2 px-6 py-3 border-b-2 border-transparent text-[#9aa0a6] text-sm hover:text-[#e3e3e3] hover:bg-[#35363a] transition-colors"
-              >
-                {tab}
-              </button>
-            ))}
+            <button
+              onClick={() => onShowToast('Promotions tab is disabled in simulation mode.')}
+              className="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-[#9aa0a6] text-sm hover:text-[#e3e3e3] hover:bg-[#35363a] transition-colors"
+            >
+              Promotions
+              <span className="bg-[#4caf50] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">41 new</span>
+            </button>
+            <button
+              onClick={() => onShowToast('Social tab is disabled in simulation mode.')}
+              className="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-[#9aa0a6] text-sm hover:text-[#e3e3e3] hover:bg-[#35363a] transition-colors"
+            >
+              Social
+              <span className="bg-[#1a73e8] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">50 new</span>
+            </button>
+            <button
+              onClick={() => onShowToast('Updates tab is disabled in simulation mode.')}
+              className="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-[#9aa0a6] text-sm hover:text-[#e3e3e3] hover:bg-[#35363a] transition-colors"
+            >
+              Updates
+              <span className="bg-[#1a73e8] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">50 new</span>
+            </button>
           </div>
 
           {/* Email rows */}
@@ -293,14 +305,7 @@ export default function EmailSimulation({
           />
         )}
 
-        {/* Empty state */}
-        {!selectedEmail && (
-          <div className="flex-1 flex-col items-center justify-center bg-[#202124] gap-3 text-center px-8 hidden lg:flex">
-            <Inbox className="w-20 h-20 text-[#9aa0a6] opacity-20" strokeWidth={1} />
-            <p className="text-base text-[#9aa0a6] font-normal">Select an email to read</p>
-            <p className="text-sm text-[#5f6368]">Click any email in your inbox to inspect it</p>
-          </div>
-        )}
+
       </div>
 
       {/* Profile panel */}

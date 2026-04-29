@@ -18,12 +18,13 @@ interface InboxCardProps {
 export default function InboxCard({ email, isSelected, sessionAnswer, onClick }: InboxCardProps) {
   const isAnswered = !!sessionAnswer;
   const wasCorrect = sessionAnswer?.is_correct;
+  const isUnread = !isAnswered;
 
   return (
     <div
       onClick={onClick}
       className={`
-        group flex items-center px-2 h-[52px] cursor-pointer border-b border-[#3c4043]/50
+        group flex items-center px-2 h-[58px] cursor-pointer border-b border-[#3c4043]/50
         hover:shadow-[inset_1px_0_0_#dadce0,-1px_0_0_#dadce0,0_1px_2px_0_rgba(60,64,67,0.3)]
         transition-all
         ${isSelected
@@ -32,7 +33,7 @@ export default function InboxCard({ email, isSelected, sessionAnswer, onClick }:
           ? wasCorrect
             ? 'bg-green-900/20 border-l-2 border-l-green-500'
             : 'bg-red-900/20 border-l-2 border-l-red-500'
-          : 'bg-[#28292c]'
+          : 'bg-[#202124]'
         }
       `}
     >
@@ -47,15 +48,15 @@ export default function InboxCard({ email, isSelected, sessionAnswer, onClick }:
       </div>
 
       {/* Sender name */}
-      <div className="w-[120px] shrink-0 truncate text-sm font-normal text-[#9aa0a6]">
+      <div className={`w-[160px] shrink-0 truncate text-sm ${isUnread ? 'font-bold text-[#e3e3e3]' : 'font-normal text-[#9aa0a6]'}`}>
         {email.sender}
       </div>
 
       {/* Subject + preview */}
       <div className="flex-1 truncate px-3 flex items-center min-w-0">
-        <span className="text-sm truncate font-normal text-[#9aa0a6]">{email.subject}</span>
-        <span className="text-sm text-[#9aa0a6] shrink-0 mx-1"> - </span>
-        <span className="text-sm text-[#9aa0a6] truncate">{email.preview}</span>
+        <span className={`text-sm truncate ${isUnread ? 'font-bold text-white' : 'font-normal text-[#9aa0a6]'}`}>{email.subject}</span>
+        <span className="text-sm text-[#5f6368] shrink-0 mx-1"> - </span>
+        <span className="text-sm text-[#5f6368] truncate">{email.preview}</span>
       </div>
 
       {/* Answered indicator */}
@@ -72,7 +73,7 @@ export default function InboxCard({ email, isSelected, sessionAnswer, onClick }:
       )}
 
       {/* Time */}
-      <div className="w-16 shrink-0 text-right text-xs text-[#9aa0a6]">{email.time}</div>
+      <div className={`w-16 shrink-0 text-right text-xs ${isUnread ? 'font-semibold text-[#e3e3e3]' : 'text-[#9aa0a6]'}`}>{email.time}</div>
     </div>
   );
 }

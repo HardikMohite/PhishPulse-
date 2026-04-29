@@ -51,7 +51,7 @@ export default function LevelSelector({
               {['←', '↑', '↓', '→'].map((k) => (
                 <div
                   key={k}
-                  className="w-5 h-5 border border-white/20 rounded flex items-center justify-center text-[9px]"
+                  className="w-5 h-5 border border-white/20 bg-transparent rounded flex items-center justify-center text-[9px]"
                 >
                   {k}
                 </div>

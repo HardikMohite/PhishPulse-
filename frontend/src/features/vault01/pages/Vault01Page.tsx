@@ -206,20 +206,11 @@ export default function Vault01Page() {
                   <CustomShield size={24} className="text-cyan-400" strokeWidth={1.5} />
                 </div>
               </div>
-              <span className="font-black text-xl tracking-tighter italic uppercase hidden sm:block text-white">
-                PHISH<span className="text-cyan-400">PULSE</span>
+              <span className="font-black text-xl tracking-tighter italic uppercase hidden sm:block">
+                <span className="text-white">PHISH</span><span className="text-cyan-400">PULSE</span>
               </span>
             </div>
 
-            {/* Back button when inside a level view */}
-            {hook.view !== 'map' && (
-              <button
-                onClick={() => hook.setView('map')}
-                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-cyan-400 transition-colors"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back to Vault Map
-              </button>
-            )}
           </nav>
         </header>
       )}
@@ -331,7 +322,7 @@ export default function Vault01Page() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 w-full px-2 relative z-10">
             <button
               onClick={() => hook.setView('map')}
-              className="border-2 border-cyan-400 text-cyan-400 font-black uppercase tracking-tighter rounded-xl px-8 py-3.5 bg-transparent hover:bg-cyan-400/10 transition-all flex items-center gap-2 justify-center shadow-[0_0_12px_rgba(6,182,212,0.15)] w-full sm:w-auto"
+              className="border-2 border-cyan-400 text-cyan-400 font-black uppercase tracking-tighter rounded-xl px-8 py-3.5 !bg-transparent hover:!bg-cyan-400/10 transition-all flex items-center gap-2 justify-center shadow-[0_0_12px_rgba(6,182,212,0.15)] w-full sm:w-auto"
             >
               ← Back to Vault Map
             </button>

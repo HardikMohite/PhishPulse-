@@ -13,7 +13,6 @@ import {
   Clock,
   ChevronRight,
 } from 'lucide-react';
-import CustomShield from '@/components/CustomShield';
 import type { VaultMeta, Level } from '../types/vault01.types';
 
 interface Vault01IntroProps {
@@ -24,7 +23,6 @@ interface Vault01IntroProps {
 
 export default function Vault01Intro({ meta, levels, onBeginTraining }: Vault01IntroProps) {
   const completedCount = levels.filter((l) => l.status === 'completed').length;
-  const activeLevel = levels.find((l) => l.status === 'active' || l.status === 'unlocked');
 
   const stats = [
     { icon: Mail,   label: `${meta.total_xp} XP`,              color: 'text-cyan-400' },
@@ -42,7 +40,7 @@ export default function Vault01Intro({ meta, levels, onBeginTraining }: Vault01I
 
       {/* Left — animated shield visual */}
       <div className="relative flex justify-center md:justify-start order-2 md:order-1 z-10">
-        <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+        <div className="relative w-64 h-64 md:w-80 md:h-80 animate-float flex items-center justify-center">
           <div className="absolute inset-0 bg-cyan-400/20 blur-3xl opacity-40 shrink-0" />
 
           {/* Radiating rings */}
@@ -60,16 +58,7 @@ export default function Vault01Intro({ meta, levels, onBeginTraining }: Vault01I
 
           {/* Shield card */}
           <div className="relative z-10 p-10 bg-[#0a0a0f]/60 border-2 border-cyan-400/40 rounded-[3rem] backdrop-blur-xl flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.2)]">
-            <motion.div
-              animate={{ scale: [1, 1.05, 1], rotate: [0, 2, 0, -2, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <CustomShield
-                size={160}
-                className="text-cyan-400 drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]"
-                strokeWidth={1}
-              />
-            </motion.div>
+            <Mail className="text-cyan-400 drop-shadow-[0_0_20px_rgba(6,182,212,0.6)] w-32 h-32 md:w-40 md:h-40" strokeWidth={1} />
 
             {/* Floating particles */}
             {[...Array(5)].map((_, i) => (
@@ -107,7 +96,7 @@ export default function Vault01Intro({ meta, levels, onBeginTraining }: Vault01I
               className="bg-white/5 p-2 px-3 rounded-lg border border-white/5 flex items-center gap-2"
             >
               <stat.icon className={`w-3.5 h-3.5 ${stat.color}`} />
-              <span className="tracking-wide text-white/80">{stat.label}</span>
+              <span className="tracking-wide text-white">{stat.label}</span>
             </div>
           ))}
         </div>

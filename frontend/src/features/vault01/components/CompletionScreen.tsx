@@ -23,6 +23,7 @@ import {
   Eye,
   AlertOctagon,
   Trophy,
+  Terminal,
 } from 'lucide-react';
 import type { TeachingStep, LevelWithTeaching } from '../types/vault01.types';
 
@@ -63,15 +64,26 @@ export default function TeachingView({
   const quizPassed = quizAnswered === correctOption?.id;
 
   return (
-    <main className="relative z-10 flex flex-col justify-start min-h-0 px-4 py-4 max-w-6xl mx-auto w-full space-y-4">
+    <main className="relative z-10 flex flex-col justify-start min-h-0 px-4 py-8 max-w-6xl mx-auto w-full space-y-8">
 
-      {/* Progress breadcrumb */}
-      <div className="flex items-center gap-3 text-[10px] font-black tracking-widest uppercase text-white/40">
-        <button onClick={onBack} className="hover:text-cyan-400 transition-colors">← Briefing</button>
-        <span className="text-white/20">›</span>
-        <span className="text-cyan-400">Learn</span>
-        <span className="text-white/20">›</span>
-        <span>Simulate</span>
+      {/* Progress tracker bar */}
+      <div className="w-full bg-[#0f172a]/80 backdrop-blur-xl rounded-2xl px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-white/5">
+        <div className="flex items-center gap-3 sm:gap-6 text-[10px] font-black tracking-widest uppercase">
+          <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)] border-b-2 border-cyan-400 pb-1">[ LEARN ]</span>
+          <span className="text-white/30">→</span>
+          <span className="text-white/30">[ SIMULATE ]</span>
+          <span className="text-white/30">→</span>
+          <span className="text-white/30">[ RESULTS ]</span>
+        </div>
+        <div className="flex gap-2">
+          {[1, 2, 3].map((step) => (
+            <div key={step} className={`w-2.5 h-2.5 rounded-full transition-colors ${
+              step < teachingStep ? 'bg-cyan-400' :
+              step === teachingStep ? 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse' :
+              'bg-transparent border border-white/20'
+            }`} />
+          ))}
+        </div>
       </div>
 
       {/* Step card */}
@@ -86,7 +98,7 @@ export default function TeachingView({
           >
             {/* ── Step 1: Concept ─────────────────────────────────────── */}
             {currentStep.type === 'concept' && (
-              <div className="w-full bg-[#0f172a]/80 backdrop-blur-xl rounded-[2rem] border-l-4 border-l-purple-500 border-t border-r border-b border-white/10 p-5 md:p-7 flex flex-col gap-4 relative overflow-hidden">
+              <div className="w-full bg-[#0f172a]/80 backdrop-blur-xl rounded-[2rem] border-l-4 border-l-purple-500 border-t border-r border-b border-white/10 p-8 md:p-12 flex flex-col gap-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-96 h-32 bg-purple-500/10 blur-[100px] pointer-events-none" />
                 <div className="flex flex-col gap-2 relative z-10">
                   <span className="text-[10px] font-bold tracking-widest uppercase text-purple-400">
@@ -96,7 +108,7 @@ export default function TeachingView({
                     {currentStep.title}
                   </h1>
                 </div>
-                <div className="flex flex-col md:flex-row gap-4 items-center bg-white/5 border border-white/10 rounded-2xl p-4 md:p-5 relative z-10">
+                <div className="flex flex-col md:flex-row gap-4 items-center bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8 relative z-10">
                   <div className="w-24 h-24 shrink-0 bg-purple-500/10 rounded-full flex items-center justify-center border border-purple-500/20">
                     {(() => {
                       const Icon = ICON_MAP[currentStep.icon_hint ?? 'shield'] ?? Shield;
@@ -117,7 +129,7 @@ export default function TeachingView({
 
             {/* ── Step 2: Comparison ──────────────────────────────────── */}
             {currentStep.type === 'comparison' && (
-              <div className="w-full bg-[#0f172a]/80 backdrop-blur-xl rounded-[2rem] border-t-2 border-t-cyan-400 border-l border-r border-b border-white/10 p-5 md:p-7 flex flex-col gap-4 relative overflow-hidden">
+              <div className="w-full bg-[#0f172a]/80 backdrop-blur-xl rounded-[2rem] border-t-2 border-t-cyan-400 border-l border-r border-b border-white/10 p-8 md:p-12 flex flex-col gap-4 relative overflow-hidden">
                 <div className="absolute top-0 right-1/4 w-96 h-32 bg-cyan-400/10 blur-[100px] pointer-events-none" />
                 <div className="flex flex-col gap-2">
                   <span className="text-[10px] font-bold tracking-widest uppercase text-cyan-400">
@@ -156,7 +168,7 @@ export default function TeachingView({
 
             {/* ── Step 3: Quiz ────────────────────────────────────────── */}
             {currentStep.type === 'quiz' && (
-              <div className="w-full bg-[#151525] border border-white/20 rounded-[2rem] p-5 md:p-7 flex flex-col gap-4 relative overflow-hidden">
+              <div className="w-full bg-[#151525] border border-white/20 rounded-[2rem] p-8 md:p-12 flex flex-col gap-4 relative overflow-hidden">
                 <div className="flex flex-col gap-2 text-center md:text-left">
                   <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">
                     {currentStep.subtitle}
@@ -264,9 +276,9 @@ export default function TeachingView({
           <button
             onClick={() => onStepChange(Math.max(1, teachingStep - 1))}
             disabled={teachingStep === 1}
-            className="w-12 h-12 flex items-center justify-center rounded-xl border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-cyan-400 text-cyan-400 font-black text-xs uppercase tracking-widest bg-transparent hover:bg-cyan-400/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4" /> Back
           </button>
 
           <span className="text-xl font-black text-white font-mono tracking-widest">
@@ -276,9 +288,9 @@ export default function TeachingView({
           <button
             onClick={() => onStepChange(Math.min(steps.length, teachingStep + 1))}
             disabled={currentStep.type === 'quiz' && !quizPassed}
-            className="w-12 h-12 flex items-center justify-center rounded-xl border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 transition-all disabled:opacity-30 group"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-cyan-400 text-cyan-400 font-black text-xs uppercase tracking-widest bg-transparent hover:bg-cyan-400/10 transition-all disabled:opacity-30"
           >
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            Next <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
@@ -288,9 +300,9 @@ export default function TeachingView({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             onClick={onStartSimulation}
-            className="flex items-center gap-2 px-8 py-3.5 border-2 border-cyan-400 text-cyan-400 font-black uppercase tracking-tighter rounded-xl hover:bg-cyan-400/10 transition-all text-sm shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+            className="flex items-center gap-2 px-8 py-3.5 border-2 border-cyan-400 text-cyan-400 font-black uppercase tracking-tighter rounded-xl bg-transparent hover:bg-cyan-400/10 transition-all text-sm shadow-[0_0_15px_rgba(6,182,212,0.2)]"
           >
-            Start Simulation <ArrowRight className="w-4 h-4" />
+            <Terminal className="w-4 h-4" /> Start Simulation
           </motion.button>
         )}
       </div>
