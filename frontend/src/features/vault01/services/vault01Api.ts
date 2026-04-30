@@ -13,6 +13,8 @@ import type {
   VaultProgress,
   SubmitAnswerPayload,
   SubmitAnswerResponse,
+  CheckAnswerPayload,
+  CheckAnswerResponse,
 } from '../types/vault01.types';
 
 // ── Response shapes from backend ──────────────────────────────────────────────
@@ -49,6 +51,19 @@ export const getProgress = async (): Promise<VaultProgress> => {
   return res.data;
 };
 
+export interface ResetVaultResponse {
+  success: boolean;
+  new_xp: number;
+  new_coins: number;
+  new_level: number;
+  health: number;
+}
+
+export const resetVault = async (): Promise<ResetVaultResponse> => {
+  const res = await api.post('/vault01/reset');
+  return res.data;
+};
+
 export const submitAnswers = async (
   payload: SubmitAnswerPayload
 ): Promise<SubmitAnswerResponse> => {
@@ -57,5 +72,12 @@ export const submitAnswers = async (
     answers: payload.answers,
     time_seconds: payload.time_seconds,
   });
+  return res.data;
+};
+
+export const checkAnswer = async (
+  payload: CheckAnswerPayload
+): Promise<CheckAnswerResponse> => {
+  const res = await api.post('/vault01/check-answer', payload);
   return res.data;
 };

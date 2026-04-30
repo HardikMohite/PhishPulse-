@@ -18,6 +18,9 @@ from app.modules.vault01 import service
 from app.modules.vault01.schemas import (
     SubmitAnswerRequest,
     SubmitAnswerResponse,
+    ResetVaultResponse,
+    CheckAnswerRequest,
+    CheckAnswerResponse,
 )
 
 router = APIRouter(prefix="/vault01", tags=["vault01"])
@@ -73,6 +76,45 @@ def get_progress(
 ):
     """User's progress for all vault01 levels."""
     return service.get_user_progress(current_user.id, db)
+
+
+@router.post("/reset", response_model=ResetVaultResponse)
+def reset_vault(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Wipe all vault01 progress for the authenticated user.
+    Reverses XP and coins earned from vault completions.
+    Returns fresh user state for frontend authStore sync.
+    """
+    try:
+        result = service.reset_vault_progress(current_user.id, db)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/check-answer", response_model=CheckAnswerResponse)
+def check_answer(
+    payload: CheckAnswerRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Phase 1 — Per-email instant validation.
+    Stateless lookup: no DB writes, no XP, no coins.
+    Returns ground truth only after the user has committed their answer.
+    """
+    try:
+        result = service.check_single_answer(
+            level_id=payload.level_id,
+            email_id=payload.email_id,
+            user_guess=payload.user_guess,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.post("/submit", response_model=SubmitAnswerResponse)

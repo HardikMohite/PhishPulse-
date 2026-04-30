@@ -91,6 +91,29 @@ class SubmitAnswerRequest(BaseModel):
     time_seconds: int
 
 
+class CheckAnswerRequest(BaseModel):
+    level_id: int
+    email_id: int
+    user_guess: bool
+
+
+class CheckAnswerResponse(BaseModel):
+    email_id: int
+    is_correct: bool
+    is_phishing: bool       # ground truth — safe to reveal after user commits
+    user_guess: bool
+    tag: str                # THREAT_BLOCKED | SAFE_VERIFIED | MISSED_THREAT | FALSE_ALARM
+    health_change: int      # 0 if correct, -20 if wrong
+
+
+class ResetVaultResponse(BaseModel):
+    success: bool
+    new_xp: int
+    new_coins: int
+    new_level: int
+    health: int
+
+
 class SubmitAnswerResponse(BaseModel):
     correct: bool                   # True if all answers correct
     accuracy: float                 # 0.0 – 100.0
@@ -106,3 +129,4 @@ class SubmitAnswerResponse(BaseModel):
     red_flags: list[dict]
     attack_timeline: list[dict]
     what_you_learned: list[str]
+    per_email_results: list[dict]

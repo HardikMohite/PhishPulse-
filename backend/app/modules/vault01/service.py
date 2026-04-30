@@ -16,7 +16,7 @@ from app.utils.json_loader import (
     load_vault01_rules_for_level,
     load_vault01_reward_for_level,
 )
-from app.modules.vault01.validator import check_answers, calculate_xp, calculate_health_change
+from app.modules.vault01.validator import check_answers, calculate_xp, calculate_health_change, compute_tag
 from app.modules.vault01.constants import VAULT_ID, DEFAULT_UNLOCKED_LEVEL, TOTAL_LEVELS
 
 
@@ -134,6 +134,78 @@ def get_user_progress(user_id: str, db: Session) -> dict:
     return {"vault_id": VAULT_ID, "levels": levels_progress}
 
 
+def reset_vault_progress(user_id: str, db: Session) -> dict:
+    """
+    Wipe all vault01 progress for the user and subtract XP/coins earned from it.
+    Returns fresh user state for the frontend to sync into authStore.
+    """
+    # Gather all completed progress rows to reverse XP/coins
+    rows = (
+        db.query(VaultProgress)
+        .filter_by(user_id=user_id, vault_id=VAULT_ID)
+        .all()
+    )
+
+    total_xp_earned = sum(r.xp_earned or 0 for r in rows)
+    total_coins_earned = sum(r.coins_earned or 0 for r in rows)
+
+    # Delete all progress rows for this vault
+    for row in rows:
+        db.delete(row)
+
+    # Subtract from user
+    user = db.query(User).filter_by(id=user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found")
+
+    user.xp = max(0, (user.xp or 0) - total_xp_earned)
+    user.coins = max(0, (user.coins or 0) - total_coins_earned)
+    user.level = max(1, user.xp // 100 + 1)
+
+    db.commit()
+
+    return {
+        "success": True,
+        "new_xp": user.xp,
+        "new_coins": user.coins,
+        "new_level": user.level,
+        "health": 100,
+    }
+
+
+def check_single_answer(level_id: int, email_id: int, user_guess: bool) -> dict:
+    """
+    Phase 1 — stateless per-email answer check.
+    Loads rules.json, looks up the correct answer for email_id,
+    computes tag and health_change. No DB writes.
+    """
+    rules = load_vault01_rules_for_level(level_id)
+    if not rules:
+        raise ValueError(f"Rules for level {level_id} not found")
+
+    correct_answers = rules.get("correct_answers", {})
+    email_key = str(email_id)
+
+    if email_key not in correct_answers:
+        raise ValueError(
+            f"Email {email_id} does not belong to level {level_id}"
+        )
+
+    is_phishing: bool = correct_answers[email_key]
+    is_correct = user_guess == is_phishing
+    tag = compute_tag(is_phishing, user_guess)
+    health_change = 0 if is_correct else -20
+
+    return {
+        "email_id": email_id,
+        "is_correct": is_correct,
+        "is_phishing": is_phishing,
+        "user_guess": user_guess,
+        "tag": tag,
+        "health_change": health_change,
+    }
+
+
 def submit_answers(
     user_id: str,
     level_id: int,
@@ -160,24 +232,32 @@ def submit_answers(
     wrong_count = result["wrong_count"]
     passed = result["passed"]
 
-    # Calculate XP and coins
-    xp_earned = calculate_xp(level["xp_reward"], accuracy)
-    coins_earned = round(level["coins_reward"] * (accuracy / 100))
+    # Calculate XP and coins — only awarded on pass
+    if passed:
+        xp_earned = calculate_xp(level["xp_reward"], accuracy)
+        coins_earned = round(level["coins_reward"] * (accuracy / 100))
+    else:
+        xp_earned = 0
+        coins_earned = 0
     health_change = calculate_health_change(wrong_count)
 
-    # Update user XP, coins, level in DB
+    # Update user XP, coins, level in DB — only on pass
     user = db.query(User).filter_by(id=user_id).first()
     if not user:
         raise ValueError(f"User {user_id} not found")
-    new_xp = (user.xp or 0) + xp_earned
-    new_coins = (user.coins or 0) + coins_earned
 
-    # Simple level-up: every 100 XP = 1 level
-    new_user_level = max((user.level or 1), new_xp // 100 + 1)
-
-    user.xp = new_xp
-    user.coins = new_coins
-    user.level = new_user_level
+    if passed:
+        new_xp = (user.xp or 0) + xp_earned
+        new_coins = (user.coins or 0) + coins_earned
+        # Simple level-up: every 100 XP = 1 level
+        new_user_level = max((user.level or 1), new_xp // 100 + 1)
+        user.xp = new_xp
+        user.coins = new_coins
+        user.level = new_user_level
+    else:
+        new_xp = user.xp or 0
+        new_coins = user.coins or 0
+        new_user_level = user.level or 1
 
     # Update vault progress for this level
     progress_row = _get_or_create_progress(user_id, level_id, db)
@@ -228,4 +308,5 @@ def submit_answers(
         "red_flags": red_flags,
         "attack_timeline": attack_timeline,
         "what_you_learned": what_you_learned,
+        "per_email_results": result.get("per_email_results", []),
     }

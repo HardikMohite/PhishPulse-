@@ -1,8 +1,14 @@
 /**
  * EmailSimulation
  * Full Gmail-clone inbox simulation.
- * Left sidebar + email list + email viewer.
- * All user data from authStore (name, email). All level data from props.
+ *
+ * REFACTOR CHANGES:
+ * - Accepts `answers` (Record<string, AnswerRecord>) and `health` from hook
+ * - Health badge placed between Search bar and Timer in header
+ * - Submit bar removed entirely (auto-submit in hook)
+ * - InboxCard receives answerRecord (not legacy sessionAnswer)
+ * - Answered rows are locked — no re-selection
+ * - feedbackState / onDismissFeedback kept for EmailViewer compat
  */
 
 import {
@@ -18,6 +24,7 @@ import {
   MoreVertical,
   AlertTriangle,
   ArrowLeft,
+  Heart,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomShield from '@/components/CustomShield';
@@ -25,18 +32,21 @@ import InboxCard from './InboxCard';
 import EmailViewer from './EmailViewer';
 import { useAuthStore } from '@/store/authStore';
 import type { LevelEmail, SessionAnswer, LevelWithTeaching } from '../types/vault01.types';
+import type { AnswerRecord } from '../hooks/useVault01';
 
 interface EmailSimulationProps {
   level: LevelWithTeaching;
   emails: LevelEmail[];
   selectedEmailId: number | null;
-  sessionAnswers: SessionAnswer[];
-  feedbackState: 'none' | 'correct' | 'incorrect';
+  answers: Record<string, AnswerRecord>;
+  sessionAnswers: SessionAnswer[];          // kept for EmailViewer compat
+  feedbackState: 'none' | 'correct' | 'threat-blocked' | 'false-alarm';
   showProfilePanel: boolean;
   toastMsg: string | null;
   allAnswered: boolean;
   submitting: boolean;
   elapsedSeconds: number;
+  health: number;
   onSelectEmail: (id: number) => void;
   onBackToList: () => void;
   onAnswer: (emailId: number, guess: boolean) => void;
@@ -48,10 +58,27 @@ interface EmailSimulationProps {
   onShowToast: (msg: string) => void;
 }
 
+function HealthBadge({ health }: { health: number }) {
+  const color =
+    health > 60
+      ? 'border-cyan-400/60 text-cyan-400'
+      : health > 40
+      ? 'border-yellow-400/60 text-yellow-400'
+      : 'border-red-400/60 text-red-400';
+
+  return (
+    <div className={`hidden sm:flex items-center gap-1.5 bg-[#303134] border ${color} px-3 py-1.5 rounded-full text-xs font-bold font-mono`}>
+      <Heart className="w-3 h-3 fill-current" />
+      HEALTH {health}
+    </div>
+  );
+}
+
 export default function EmailSimulation({
   level,
   emails,
   selectedEmailId,
+  answers,
   sessionAnswers,
   feedbackState,
   showProfilePanel,
@@ -59,6 +86,7 @@ export default function EmailSimulation({
   allAnswered,
   submitting,
   elapsedSeconds,
+  health,
   onSelectEmail,
   onBackToList,
   onAnswer,
@@ -73,6 +101,7 @@ export default function EmailSimulation({
   const avatarLetter = user?.name?.charAt(0).toUpperCase() ?? 'U';
   const selectedEmail = emails.find((e) => e.id === selectedEmailId) ?? null;
   const selectedIndex = selectedEmail ? emails.indexOf(selectedEmail) : -1;
+  const answeredCount = Object.keys(answers).length;
 
   const formatTimer = (s: number) => {
     const m = Math.floor(s / 60);
@@ -98,7 +127,7 @@ export default function EmailSimulation({
           <span className="text-[#9aa0a6] text-sm font-normal not-italic ml-0.5">Mail</span>
         </div>
 
-        {/* Search */}
+        {/* Search bar */}
         <div className="flex-1 max-w-[720px] mx-auto">
           <div className="flex items-center bg-[#303134] hover:bg-[#3c4043] focus-within:bg-[#3c4043] rounded-2xl h-12 px-4 gap-3 transition-colors">
             <Search className="w-5 h-5 text-[#9aa0a6] shrink-0" />
@@ -112,8 +141,11 @@ export default function EmailSimulation({
           </div>
         </div>
 
-        {/* Right side */}
+        {/* Right side: [HEALTH] [Timer] [Level Badge] [Avatar] */}
         <div className="flex items-center gap-3 ml-auto shrink-0">
+          {/* Health badge — NEW, sits between search and timer */}
+          <HealthBadge health={health} />
+
           {/* Timer */}
           <div className="hidden sm:flex items-center gap-2 bg-[#303134] border border-[#5f6368] text-[#9aa0a6] px-3 py-1.5 rounded-full text-xs font-mono">
             <Clock className="w-3.5 h-3.5" />
@@ -124,7 +156,7 @@ export default function EmailSimulation({
           <div className="hidden sm:flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
             Level {String(level.id).padStart(2, '0')}
             <span className="text-cyan-400/40">·</span>
-            {sessionAnswers.length}/{emails.length}
+            {answeredCount}/{emails.length}
           </div>
 
           {/* Avatar */}
@@ -251,30 +283,29 @@ export default function EmailSimulation({
                 key={email.id}
                 email={email}
                 isSelected={selectedEmailId === email.id}
-                sessionAnswer={sessionAnswers.find((a) => a.email_id === email.id)}
+                answerRecord={answers[String(email.id)]}
                 onClick={() => onSelectEmail(email.id)}
               />
             ))}
           </div>
 
-          {/* Submit bar — shows when all answered */}
+          {/* Auto-submit indicator — replaces manual submit bar */}
           <AnimatePresence>
-            {allAnswered && (
+            {allAnswered && submitting && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="border-t border-cyan-400/30 bg-[#0a0a1a] px-6 py-4 flex items-center justify-between gap-4"
+                exit={{ opacity: 0, y: 20 }}
+                className="border-t border-cyan-400/30 bg-[#0a0a1a] px-6 py-4 flex items-center justify-center gap-3"
               >
-                <p className="text-sm text-white/60 font-medium">
-                  All emails classified. Ready to submit?
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full"
+                />
+                <p className="text-sm text-cyan-400 font-bold uppercase tracking-widest">
+                  Analysing results...
                 </p>
-                <button
-                  onClick={onSubmit}
-                  disabled={submitting}
-                  className="px-6 py-2.5 bg-cyan-400 text-black font-black uppercase tracking-tighter rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:bg-cyan-300 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submitting ? 'Submitting...' : 'Submit Results →'}
-                </button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -286,6 +317,7 @@ export default function EmailSimulation({
             email={selectedEmail}
             emails={emails}
             feedbackState={feedbackState}
+            answerRecord={answers[String(selectedEmail.id)]}
             sessionAnswer={sessionAnswers.find((a) => a.email_id === selectedEmail.id)}
             onBack={onBackToList}
             onPrev={() => {
@@ -304,8 +336,6 @@ export default function EmailSimulation({
             totalCount={emails.length}
           />
         )}
-
-
       </div>
 
       {/* Profile panel */}

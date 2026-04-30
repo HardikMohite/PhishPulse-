@@ -5,13 +5,14 @@
  * Route: /vault01
  */
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Star,
   ChevronRight,
-  ArrowLeft,
   Mail,
   AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import CustomShield from '@/components/CustomShield';
 import Vault01Intro from '../components/Vault01Intro';
@@ -21,6 +22,7 @@ import EmailSimulation from '../components/EmailSimulation';
 import RedScreen from '../components/RedScreen';
 import ResultCard from '../components/ResultCard';
 import { useVault01 } from '../hooks/useVault01';
+import { isPassing } from '../utils/scoring';
 
 // Inline loading screen (shown for 3 seconds before simulation)
 function LoadingScreen() {
@@ -88,6 +90,7 @@ function LoadingScreen() {
 
 export default function Vault01Page() {
   const hook = useVault01();
+  const [resetConfirm, setResetConfirm] = useState(false);
 
   // ── Loading / error states ────────────────────────────────────────────────
   if (hook.pageLoading) {
@@ -127,13 +130,20 @@ export default function Vault01Page() {
         level={hook.selectedLevel}
         emails={hook.emails}
         selectedEmailId={hook.selectedEmailId}
+        answers={hook.answers}
         sessionAnswers={hook.sessionAnswers}
-        feedbackState={hook.feedbackState}
+        feedbackState={
+          hook.selectedEmailId !== null && hook.answers[String(hook.selectedEmailId)] &&
+          !hook.answers[String(hook.selectedEmailId)].pending
+            ? hook.feedbackState
+            : 'none'
+        }
         showProfilePanel={hook.showProfilePanel}
         toastMsg={hook.toastMsg}
         allAnswered={hook.allAnswered}
         submitting={hook.submitting}
         elapsedSeconds={hook.elapsedSeconds}
+        health={hook.health}
         onSelectEmail={hook.setSelectedEmailId}
         onBackToList={() => hook.setSelectedEmailId(null)}
         onAnswer={(emailId, guess) => hook.handleAnswer(emailId, guess)}
@@ -151,11 +161,33 @@ export default function Vault01Page() {
   }
 
   if (hook.view === 'red-screen') {
+    // Build red flags from the offending email when submitResult isn't available yet
+    const emailForRedScreen = hook.redScreenEmail;
+    const redFlags = hook.submitResult?.red_flags ?? (
+      emailForRedScreen
+        ? [
+            {
+              label: 'Suspicious sender address',
+              explanation: `The email came from ${emailForRedScreen.address} — always verify the sender domain before acting.`,
+              highlight: emailForRedScreen.address,
+            },
+            ...emailForRedScreen.links
+              .filter((l) => l.is_dangerous)
+              .map((l) => ({
+                label: 'Dangerous link detected',
+                explanation: `The link "${l.display_text}" leads to ${l.real_url} — a malicious destination.`,
+                highlight: l.display_text,
+              })),
+          ]
+        : []
+    );
+    const attackTimeline = hook.submitResult?.attack_timeline ?? [];
+
     return (
       <RedScreen
         levelName={hook.selectedLevel?.name ?? ''}
-        redFlags={hook.submitResult?.red_flags ?? []}
-        attackTimeline={hook.submitResult?.attack_timeline ?? []}
+        redFlags={redFlags}
+        attackTimeline={attackTimeline}
         onRetry={() => {
           hook.handleRetry();
         }}
@@ -165,6 +197,13 @@ export default function Vault01Page() {
   }
 
   if (hook.view === 'complete' && hook.selectedLevel && hook.submitResult) {
+    // Safety guard: 'complete' should only ever be reached on a passing result.
+    // If somehow a non-passing result ends up here (e.g. stale state), bounce to map.
+    if (!isPassing(hook.submitResult.accuracy)) {
+      hook.setView('map');
+      return null;
+    }
+
     const nextLevelId = hook.submitResult.next_level_id;
     const nextLevel = nextLevelId ? hook.levels.find((l) => l.id === nextLevelId) ?? null : null;
 
@@ -172,9 +211,12 @@ export default function Vault01Page() {
       <ResultCard
         level={hook.selectedLevel}
         result={hook.submitResult}
+        emails={hook.emails}
         nextLevel={nextLevel}
         elapsedSeconds={hook.elapsedSeconds}
-        onReplay={hook.handleRetry}
+        health={hook.health}
+        // onReplay is intentionally omitted on pass — passed levels are locked.
+        // ResultCard hides the Replay button when onReplay is undefined and passed=true.
         onBackToMap={() => hook.setView('map')}
         onNextLevel={() => {
           const next = hook.levels.find((l) => l.id === nextLevelId);
@@ -199,6 +241,8 @@ export default function Vault01Page() {
       {hook.view !== 'loading' && hook.view !== 'simulate' && (
         <header className="sticky top-0 z-40 px-4 pt-4">
           <nav className="max-w-7xl mx-auto bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:px-6 flex items-center justify-between">
+
+            {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="relative group">
                 <div className="absolute inset-0 bg-cyan-400 blur-md opacity-20 group-hover:opacity-40 transition-opacity" />
@@ -210,6 +254,80 @@ export default function Vault01Page() {
                 <span className="text-white">PHISH</span><span className="text-cyan-400">PULSE</span>
               </span>
             </div>
+
+            {/* Reset Vault — map view only */}
+            {hook.view === 'map' && (
+              <div className="flex items-center">
+                <AnimatePresence mode="wait">
+                  {!resetConfirm ? (
+                    /* ── Default: RESET VAULT button — cyan, hollow ── */
+                    <motion.button
+                      key="reset-idle"
+                      initial={{ opacity: 0, x: 6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 6 }}
+                      transition={{ duration: 0.15 }}
+                      onClick={() => setResetConfirm(true)}
+                      className="flex items-center gap-2 border border-cyan-400 text-cyan-400 bg-transparent hover:bg-cyan-400/10 font-mono font-bold text-[11px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all"
+                    >
+                      {/* Desktop label */}
+                      <RotateCcw className="w-3.5 h-3.5 hidden sm:block" />
+                      <span className="hidden sm:inline">Reset Vault</span>
+                      {/* Mobile: icon only */}
+                      <RotateCcw className="w-4 h-4 sm:hidden" />
+                    </motion.button>
+                  ) : (
+                    /* ── Confirm state: inline, no modal ── */
+                    <motion.div
+                      key="reset-confirm"
+                      initial={{ opacity: 0, x: 6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 6 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center gap-2"
+                    >
+                      {/* Prompt text — hidden on mobile to save space */}
+                      <span className="hidden sm:block font-mono text-[11px] text-white/40 uppercase tracking-widest whitespace-nowrap">
+                        Reset all vault progress?
+                      </span>
+
+                      {/* Confirm — red, hollow */}
+                      <button
+                        onClick={() => {
+                          setResetConfirm(false);
+                          hook.handleResetVault();
+                        }}
+                        disabled={hook.resetting}
+                        className="flex items-center gap-1.5 border border-red-500 text-red-400 bg-transparent hover:bg-red-500/10 font-mono font-bold text-[11px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        {hook.resetting ? (
+                          <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <RotateCcw className="w-3.5 h-3.5 hidden sm:block" />
+                        )}
+                        <span className="hidden sm:inline">
+                          {hook.resetting ? 'Resetting…' : 'Confirm Reset'}
+                        </span>
+                        {/* Mobile: just the spinning icon when loading, checkmark otherwise */}
+                        {hook.resetting
+                          ? <RotateCcw className="w-4 h-4 animate-spin sm:hidden" />
+                          : <span className="sm:hidden text-xs">✓</span>
+                        }
+                      </button>
+
+                      {/* Cancel */}
+                      <button
+                        onClick={() => setResetConfirm(false)}
+                        disabled={hook.resetting}
+                        className="border border-white/20 text-white/40 bg-transparent hover:bg-white/5 font-mono font-bold text-[11px] uppercase tracking-widest px-3 py-2 rounded-xl transition-all disabled:opacity-30"
+                      >
+                        ✕
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
           </nav>
         </header>

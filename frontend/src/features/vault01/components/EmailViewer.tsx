@@ -6,7 +6,7 @@
  * Uses real user data from authStore for avatar letter.
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -27,13 +27,15 @@ import {
 } from 'lucide-react';
 import CustomShield from '@/components/CustomShield';
 import HoverLinkModal from './HoverLinkModal';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, HEALTH_PENALTY } from '@/store/authStore';
 import type { LevelEmail, SessionAnswer, EmailLink } from '../types/vault01.types';
+import type { AnswerRecord } from '../hooks/useVault01';
 
 interface EmailViewerProps {
   email: LevelEmail;
   emails: LevelEmail[];
-  feedbackState: 'none' | 'correct' | 'incorrect';
+  feedbackState: 'none' | 'correct' | 'threat-blocked' | 'incorrect';
+  answerRecord?: AnswerRecord;
   sessionAnswer?: SessionAnswer;
   onBack: () => void;
   onPrev: () => void;
@@ -63,6 +65,7 @@ export default function EmailViewer({
   email,
   emails,
   feedbackState,
+  answerRecord,
   sessionAnswer,
   onBack,
   onPrev,
@@ -81,6 +84,15 @@ export default function EmailViewer({
 
   const avatarLetter = user?.name?.charAt(0).toUpperCase() ?? 'U';
   const isAnswered = !!sessionAnswer;
+
+  // ── Auto-dismiss THREAT_BLOCKED overlay after 2 seconds ──────────────────
+  useEffect(() => {
+    if (feedbackState !== 'threat-blocked') return;
+    const timer = setTimeout(() => {
+      onDismissFeedback();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [feedbackState, onDismissFeedback]);
 
   // ── Link hover detection ──────────────────────────────────────────────────
   const handleMouseOver = (e: React.MouseEvent) => {
@@ -295,7 +307,32 @@ export default function EmailViewer({
               transition={{ type: 'spring', damping: 20, stiffness: 260 }}
               className="w-full max-w-md bg-[#131320] border border-white/10 rounded-2xl p-8 shadow-[0_0_60px_rgba(0,0,0,0.8)] relative overflow-hidden"
             >
-              {feedbackState === 'correct' ? (
+              {feedbackState === 'threat-blocked' ? (
+                /* ── THREAT BLOCKED: phishing correctly marked as phishing ── */
+                <>
+                  <div className="absolute top-0 inset-x-0 h-1 bg-green-500 shadow-[0_0_20px_rgba(16,185,129,0.8)]" />
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mb-4 relative">
+                      <div className="absolute inset-0 rounded-full border-2 border-green-400 animate-ping opacity-20" />
+                      <Check className="w-10 h-10" strokeWidth={3} />
+                    </div>
+                    <h3 className="text-xl font-black uppercase tracking-wider mb-2" style={{ color: '#22c55e', fontFamily: 'monospace' }}>
+                      THREAT BLOCKED
+                    </h3>
+                    <p className="text-white/60 text-sm font-medium mb-6">
+                      Good catch. This was a phishing attempt.
+                    </p>
+                    <div className="flex items-center justify-center w-full pt-4 border-t border-white/10">
+                      <button
+                        onClick={onDismissFeedback}
+                        className="text-[11px] uppercase font-bold text-green-400 tracking-widest hover:text-white transition-colors border border-green-400/30 px-6 py-2 rounded-lg hover:bg-green-400/10"
+                      >
+                        [ CONTINUE ]
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : feedbackState === 'correct' ? (
                 <>
                   <div className="absolute top-0 inset-x-0 h-1 bg-green-500 shadow-[0_0_20px_rgba(16,185,129,0.8)]" />
                   <div className="flex flex-col items-center text-center">
@@ -320,7 +357,38 @@ export default function EmailViewer({
                     </div>
                   </div>
                 </>
+              ) : answerRecord?.tag === 'FALSE ALARM' ? (
+                /* ── FALSE ALARM: safe email marked as phishing — penalty, not game-over ── */
+                <>
+                  <div className="absolute top-0 inset-x-0 h-1 bg-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.8)]" />
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 rounded-full bg-amber-400/10 flex items-center justify-center mb-4">
+                      <AlertTriangle className="w-10 h-10 text-amber-400" />
+                    </div>
+                    <h3 className="text-xl font-black text-amber-400 uppercase tracking-wider mb-2">
+                      False Alarm
+                    </h3>
+                    <p className="text-white/60 text-sm font-medium mb-4">
+                      This email was legitimate — you flagged it as a threat.
+                    </p>
+                    <div className="flex items-center gap-2 text-amber-400 font-black text-lg mb-6 bg-amber-400/10 px-4 py-1.5 rounded-full border border-amber-400/20">
+                      <HeartCrack className="w-5 h-5" /> -{HEALTH_PENALTY} Health
+                    </div>
+                    <p className="text-white/50 text-xs leading-relaxed mb-6 max-w-xs">
+                      Over-flagging legitimate emails creates noise and erodes trust. Check sender domains and context before marking as phishing.
+                    </p>
+                    <div className="flex items-center justify-center w-full pt-4 border-t border-white/5">
+                      <button
+                        onClick={onDismissFeedback}
+                        className="px-8 py-3 border border-amber-400/40 rounded-xl text-xs uppercase font-bold text-amber-400 hover:bg-amber-400/10 transition-colors"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  </div>
+                </>
               ) : (
+                /* ── MISSED THREAT: phishing marked safe — game over, go to red screen ── */
                 <>
                   <div className="absolute top-0 inset-x-0 h-1 bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)]" />
                   <div className="flex flex-col items-center text-center">
@@ -331,21 +399,15 @@ export default function EmailViewer({
                       Missed — This Was Phishing
                     </h3>
                     <div className="flex items-center gap-2 text-red-400 font-black text-lg mb-6 bg-red-400/10 px-4 py-1.5 rounded-full border border-red-400/20">
-                      <HeartCrack className="w-5 h-5" /> -10 Health
+                      <HeartCrack className="w-5 h-5" /> -{HEALTH_PENALTY} Health
                     </div>
                     <p className="text-white/80 font-medium leading-relaxed mb-4 max-w-md">
                       You marked this as safe, but it is an attack. Hover the links to check their real destination.
                     </p>
-                    <div className="flex items-center justify-center gap-4 w-full pt-4 border-t border-white/5">
-                      <button
-                        onClick={onDismissFeedback}
-                        className="px-6 py-3 border border-white/20 rounded-xl text-xs uppercase font-bold text-white/60 hover:bg-white/5 transition-colors"
-                      >
-                        Continue
-                      </button>
+                    <div className="flex items-center justify-center w-full pt-4 border-t border-white/5">
                       <button
                         onClick={onSeeRedScreen}
-                        className="px-6 py-3 bg-cyan-400 rounded-xl text-xs uppercase font-bold text-black hover:bg-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.4)] transition-all hover:scale-105 active:scale-95"
+                        className="px-8 py-3 bg-cyan-400 rounded-xl text-xs uppercase font-bold text-black hover:bg-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.4)] transition-all hover:scale-105 active:scale-95"
                       >
                         See Damage →
                       </button>

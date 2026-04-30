@@ -16,6 +16,7 @@ export interface Level {
   xp_reward: number;
   coins_reward: number;
   est_minutes: number;
+  status: LevelStatus;        // injected by backend overview endpoint
 }
 
 // ── From emails.json ──────────────────────────────────────────────────────────
@@ -124,8 +125,23 @@ export interface VaultProgress {
 
 export interface SubmitAnswerPayload {
   level_id: number;
-  answers: Record<number, boolean>; // email_id -> user's guess
+  answers: Record<string, boolean>; // email_id as string -> user's guess
   time_seconds: number;
+}
+
+export interface CheckAnswerPayload {
+  level_id: number;
+  email_id: number;
+  user_guess: boolean;
+}
+
+export interface CheckAnswerResponse {
+  email_id: number;
+  is_correct: boolean;
+  is_phishing: boolean;     // ground truth, safe to reveal after user commits
+  user_guess: boolean;
+  tag: 'THREAT_BLOCKED' | 'SAFE_VERIFIED' | 'MISSED_THREAT' | 'FALSE_ALARM';
+  health_change: number;    // 0 if correct, -20 if wrong
 }
 
 export interface SubmitAnswerResponse {
@@ -136,9 +152,21 @@ export interface SubmitAnswerResponse {
   new_xp: number;
   new_coins: number;
   new_level: number;
+  level_up: boolean;          // true if profile level increased this submission
   health_change: number;      // negative on miss, 0 on pass
   next_level_unlocked: boolean;
   next_level_id: number | null;
+  // Post-game debrief fields
+  what_you_learned: string[];
+  red_flags: RedFlag[];
+  attack_timeline: Array<{ time: string; event: string; is_critical?: boolean }>;
+  per_email_results: Array<{
+    email_id: number;
+    is_correct: boolean;
+    correct_answer: boolean;
+    user_guess: boolean | null;
+    tag: string;
+  }>;
 }
 
 // ── Local session state (not persisted to DB) ─────────────────────────────────

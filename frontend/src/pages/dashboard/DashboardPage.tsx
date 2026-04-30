@@ -296,7 +296,7 @@ const Sidebar = ({
 /* ─── Dashboard Page ──────────────────────────────────────── */
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, health: currentHp } = useAuthStore();
 
   const [loading, setLoading] = useState(true);
   const [dailyChallenge, setDailyChallenge] = useState<CTFChallenge | null>(null);
@@ -388,8 +388,7 @@ export default function DashboardPage() {
   /* Derived values */
   const xpToNextLevel = user.level * 100;
   const xpPct = Math.min((user.xp / xpToNextLevel) * 100, 100);
-  // HP mapped from level progress as a fun stat (80–100 range)
-  const currentHp = Math.max(20, Math.min(100, Math.round(50 + xpPct / 2)));
+  // HP comes directly from authStore — real value reflecting simulation performance
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-slate-200 flex overflow-x-hidden">

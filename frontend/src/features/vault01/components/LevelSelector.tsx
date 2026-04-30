@@ -67,26 +67,29 @@ export default function LevelSelector({
             const isCompleted  = level.status === 'completed';
             const isActive     = level.status === 'active';
             const isLocked     = level.status === 'locked';
+            // Completed levels are permanently locked — passing seals the level.
+            const isBlocked    = isLocked || isCompleted;
 
             return (
               <motion.div
                 key={level.id}
                 animate={{
-                  scale: isFocused ? 1.02 : 1,
-                  borderColor: isFocused
+                  scale: isFocused && !isBlocked ? 1.02 : 1,
+                  borderColor: isFocused && !isBlocked
                     ? 'rgba(6,182,212,0.5)'
                     : isCompleted
                     ? 'rgba(34,197,94,0.2)'
                     : 'rgba(255,255,255,0.05)',
                 }}
-                className={`p-6 bg-[#0f172a]/80 backdrop-blur-xl rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden ${
-                  isFocused
-                    ? 'bg-cyan-400/5 shadow-[0_0_20px_rgba(6,182,212,0.1)]'
-                    : isLocked
+                className={`p-6 bg-[#0f172a]/80 backdrop-blur-xl rounded-2xl border-2 transition-all relative overflow-hidden ${
+                  isBlocked
                     ? 'opacity-50 cursor-not-allowed'
-                    : 'opacity-90'
+                    : isFocused
+                    ? 'cursor-pointer bg-cyan-400/5 shadow-[0_0_20px_rgba(6,182,212,0.1)]'
+                    : 'cursor-pointer opacity-90'
                 }`}
                 onClick={() => {
+                  if (isBlocked) return;
                   onFocusChange(idx);
                   onSelect(level);
                 }}
@@ -111,7 +114,10 @@ export default function LevelSelector({
 
                   {/* Status indicator */}
                   {isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                      <Lock className="w-3.5 h-3.5 text-green-400/60" />
+                    </div>
                   ) : isActive ? (
                     <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
                   ) : isLocked ? (

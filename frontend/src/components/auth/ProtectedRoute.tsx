@@ -8,14 +8,25 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, updateUser } = useAuthStore();
   // Always verify with the server — never trust localStorage alone.
   // This catches: expired cookies, revoked sessions, tampered store data.
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     getMe()
-      .then((data) => setUser(data))
+      .then((data) => {
+        if (user) {
+          // User already in store (persisted from localStorage) — only patch the
+          // server-owned fields (xp, coins, level, streak, etc.) so that
+          // client-only fields like health are never overwritten by a stale
+          // getMe() response that has no health field.
+          updateUser(data);
+        } else {
+          // First load — no persisted user yet, safe to set in full.
+          setUser(data);
+        }
+      })
       .catch(() => {
         // Cookie invalid / expired — clear any stale local state
         setUser(null);
