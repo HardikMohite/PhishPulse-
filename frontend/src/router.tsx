@@ -14,6 +14,10 @@ import VaultLevelsPage from "@/pages/vault-realm/VaultLevelsPage";
 // ── Vault 01 ──────────────────────────────────────────────────────────────────
 import Vault01Page from "@/features/vault01/pages/Vault01Page";
 
+// ── Incident Gate ────────────────────────────────────────────────────────────────────
+import IncidentGatePage from "@/features/incidentGate/pages/IncidentGatePage";
+import SimulationPlaceholderPage from "@/features/incidentGate/pages/SimulationPlaceholderPage";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -60,9 +64,14 @@ const router = createBrowserRouter([
     path: "/leaderboard",
     element: <ProtectedRoute><LeaderboardPage /></ProtectedRoute>,
   },
+  // ── Incident Gate ───────────────────────────────────────────────────────────────────
   {
     path: "/incident-gate",
-    element: <Navigate to="/dashboard" replace />,
+    element: <ProtectedRoute><IncidentGatePage /></ProtectedRoute>,
+  },
+  {
+    path: "/incident-gate/simulation",
+    element: <ProtectedRoute><SimulationPlaceholderPage /></ProtectedRoute>,
   },
   {
     path: "/settings",

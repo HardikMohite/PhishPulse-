@@ -1,26 +1,20 @@
-import { useState, useEffect, useMemo, type ComponentType, type SVGProps } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield as ShieldIcon,
   Flame as FlameIcon,
   Star as StarIcon,
   Activity as ActivityIcon,
-  Bell as BellIcon,
   Zap as ZapIcon,
   Vault as VaultIcon,
   ChevronRight,
-  Trophy as TrophyIcon,
-  LayoutDashboard,
   Swords as SwordsIcon,
   ArrowUpRight,
   AlertTriangle,
   X as XIcon,
   ShieldCheck as ShieldCheckIcon,
-  ShoppingBag as ShoppingBagIcon,
   Heart as HeartIcon,
-  LockKeyhole,
-  Snowflake as SnowflakeIcon,
-  LogOut,
+  Trophy as TrophyIcon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -28,17 +22,9 @@ import { logout, getMe } from '@/services/authService';
 import { getDailyChallenge } from '@/services/ctfService';
 import type { CTFChallenge } from '@/services/ctfService';
 import CustomShield from '@/components/CustomShield';
-
-type LucideIcon = ComponentType<SVGProps<SVGSVGElement>>;
-
-type Notification = {
-  id: number;
-  title: string;
-  message: string;
-  time: string;
-  icon: string;
-  color: 'cyan' | 'yellow' | 'green' | 'orange' | 'red';
-};
+import AppHeader from '@/components/layout/AppHeader';
+import Sidebar from '@/components/layout/Sidebar';
+import StoreDrawer from '@/components/layout/StoreDrawer';
 
 const BRAND_CYAN = '#06b6d4';
 
@@ -131,7 +117,7 @@ const HealthCard = ({ currentHp = 80, maxHp = 100 }: { currentHp?: number; maxHp
 const StatCard = ({
   icon: Icon, label, value, subtext, color = 'cyan', progress,
 }: {
-  icon: LucideIcon; label: string; value: string | number; subtext?: string; color?: string; progress?: number;
+  icon: any; label: string; value: string | number; subtext?: string; color?: string; progress?: number;
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -139,10 +125,7 @@ const StatCard = ({
     className="bg-[#0f172a]/80 border border-cyan-500/10 p-5 rounded-2xl backdrop-blur-xl group transition-all"
   >
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{label}</p>
-        <Icon className={`w-6 h-6 ${color === 'yellow' ? 'text-yellow-400' : color === 'orange' ? 'text-orange-400' : 'text-cyan-400'}`} />
-      </div>
+      <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-3">{label}</p>
       <div className="flex items-baseline gap-2">
         <span className={`text-4xl font-black ${color === 'yellow' ? 'text-yellow-400' : color === 'orange' ? 'text-orange-400' : 'text-white'}`}>
           {value}
@@ -173,145 +156,18 @@ const StatCard = ({
   </motion.div>
 );
 
-/* ─── Sidebar ─────────────────────────────────────────────── */
-const Sidebar = ({
-  activeTab, onStoreClick, onLogout, userName,
-}: {
-  activeTab: string; onStoreClick: () => void; onLogout: () => void; userName: string;
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const navigate = useNavigate();
-
-  const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, id: 'dashboard', path: '/dashboard' },
-    { label: 'Vault Realm', icon: VaultIcon, id: 'vault', path: '/vault-realm' },
-    { label: 'Incident Gate', icon: AlertTriangle, id: 'incident', locked: true, path: '/incident-gate' },
-    { label: 'CTF Challenges', icon: SwordsIcon, id: 'ctf', path: '/ctf' },
-    { label: 'Leaderboard', icon: TrophyIcon, id: 'leaderboard', path: '/leaderboard' },
-    { label: 'Store', icon: ShoppingBagIcon, id: 'store' },
-  ];
-
-  return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`fixed left-0 top-0 bottom-0 z-50 bg-[#0d1117] border-r border-cyan-500/10 flex flex-col ${isHovered ? 'w-64' : 'w-16'}`}
-          style={{ transition: 'width 300ms cubic-bezier(0.4,0,0.2,1)', boxShadow: isHovered ? '20px 0 60px rgba(0,0,0,0.5)' : 'none' }}
-    >
-      <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent opacity-50 pointer-events-none" />
-
-      {/* Logo */}
-      <div className={`px-4 h-28 flex items-center transition-all duration-300 ${isHovered ? 'gap-4' : 'justify-center'}`}>
-        <motion.div
-          className="flex-shrink-0 relative"
-          animate={isHovered ? { rotate: [0, 5, 0, -5, 0], scale: [1, 1.08, 1] } : { rotate: -12, scale: 1 }}
-          transition={isHovered ? { rotate: { duration: 6, repeat: Infinity }, scale: { duration: 4, repeat: Infinity } } : { duration: 0.5 }}
-        >
-          <motion.div
-            animate={isHovered ? { opacity: [0.4, 0.8, 0.4], scale: [1, 1.2, 1] } : { opacity: 0 }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute inset-0 bg-cyan-500/30 blur-2xl rounded-full"
-          />
-          <CustomShield
-            className={`text-cyan-400 relative z-10 transition-all duration-500 ${isHovered ? 'w-12 h-12' : 'w-9 h-9'}`}
-            strokeWidth={1.5}
-          />
-        </motion.div>
-        <div className={`flex flex-col whitespace-nowrap transition-all duration-500 ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12 pointer-events-none'}`}>
-          <div className="flex items-baseline">
-            <span className="text-2xl font-black tracking-tighter text-white uppercase">PHISH</span>
-            <span className="text-2xl font-black tracking-tighter text-cyan-400 uppercase">PULSE</span>
-          </div>
-          <div className="flex items-center gap-1.5 -mt-0.5">
-            <div className="w-1 h-1 rounded-full bg-cyan-500 shadow-[0_0_5px_#06b6d4]" />
-            <p className="text-[7.5px] uppercase tracking-[0.5em] text-slate-500 font-bold">TERMINAL_ACTIVE</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 px-2 mt-8 space-y-2">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              if (item.id === 'store') { onStoreClick(); return; }
-              if (item.path) navigate(item.path);
-            }}
-            className="w-full group relative flex items-center gap-4 p-3 rounded-xl transition-all"
-            style={{
-              background: activeTab === item.id ? 'rgba(6,182,212,0.05)' : 'transparent',
-              color: activeTab === item.id ? '#22d3ee' : '#94a3b8',
-              borderLeft: activeTab === item.id ? '2px solid #22d3ee' : '2px solid transparent',
-            }}
-          >
-            <div className="relative">
-              <item.icon className="w-5 h-5 min-w-[20px] transition-all duration-300 group-hover:scale-110 group-hover:text-cyan-400" />
-              {item.locked && (
-                <div className="absolute -bottom-1 -right-1 text-orange-500 bg-[#0d1117] rounded-full p-0.5">
-                  <LockKeyhole size={8} />
-                </div>
-              )}
-            </div>
-            <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
-              {item.label}
-            </span>
-            {item.locked && isHovered && (
-              <span className="ml-auto text-[8px] font-black bg-orange-500/10 text-orange-500 border border-orange-500/20 px-1.5 py-0.5 rounded">LOCKED</span>
-            )}
-          </button>
-        ))}
-      </nav>
-
-      {/* Bottom */}
-      <div className="px-2 pb-6 mt-auto border-t border-white/5 pt-4 space-y-4">
-        <div className={`p-3 rounded-2xl bg-white/5 flex items-center gap-3 transition-all overflow-hidden ${!isHovered ? "justify-center p-2" : ""}`}>
-          <div className="w-8 h-8 min-w-[32px] rounded-full bg-slate-800 border border-white/10 overflow-hidden flex-shrink-0">
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} alt="avatar" />
-          </div>
-          <div className={`transition-all duration-300 whitespace-nowrap ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 pointer-events-none"}`}>
-            <p className="text-[10px] font-black text-white uppercase tracking-tighter truncate max-w-[140px]">{userName}</p>
-            <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Active</span>
-            </div>
-          </div>
-        </div>
-        <motion.button
-          onClick={onLogout}
-          className="w-full group flex items-center gap-4 p-3 rounded-xl text-red-400 border border-red-500/30 bg-red-500/5 transition-all overflow-hidden hover:border-red-400 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:bg-red-400/5 backdrop-blur-md cursor-pointer"
-          whileHover={{ x: 2 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <LogOut className="w-5 h-5 min-w-[20px] text-red-400 transition-all duration-300" />
-          <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"}`}>
-            Logout
-          </span>
-        </motion.button>
-      </div>
-    </div>
-  );
-};
-
 /* ─── Dashboard Page ──────────────────────────────────────── */
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user, setUser, health: currentHp } = useAuthStore();
+  const { user, setUser } = useAuthStore();
 
   const [loading, setLoading] = useState(true);
   const [dailyChallenge, setDailyChallenge] = useState<CTFChallenge | null>(null);
   const [timeLeft, setTimeLeft] = useState('');
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [showAvatarTooltip, setShowAvatarTooltip] = useState(false);
+
   const [showDefenseTooltip, setShowDefenseTooltip] = useState(false);
   const [isStoreOpen, setIsStoreOpen] = useState(false);
-  const [purchaseFeedback, setPurchaseFeedback] = useState<string | null>(null);
-
-  // Mock notifications data
-  const notifications: Notification[] = [
-    // { id: 1, title: 'Vault Completed', message: 'You completed Vault 2 - Spear Phishing', time: '2 hours ago', icon: '✓', color: 'cyan' },
-    // { id: 2, title: 'New Challenge', message: 'Daily CTF challenge available now', time: '30 mins ago', icon: '🎯', color: 'yellow' },
-  ];
+  const [loggingOut, setLoggingOut] = useState(false);
 
   /* Fetch real data on mount */
   useEffect(() => {
@@ -361,15 +217,12 @@ export default function DashboardPage() {
   }, [dailyChallenge, timeLeft]);
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     try { await logout(); } catch {}
     setUser(null);
     navigate('/auth/login');
   };
 
-  const handlePurchase = (item: string) => {
-    setPurchaseFeedback(item);
-    setTimeout(() => setPurchaseFeedback(null), 2000);
-  };
 
   /* ── Loading screen ── */
   if (loading || !user) {
@@ -388,7 +241,8 @@ export default function DashboardPage() {
   /* Derived values */
   const xpToNextLevel = user.level * 100;
   const xpPct = Math.min((user.xp / xpToNextLevel) * 100, 100);
-  // HP comes directly from authStore — real value reflecting simulation performance
+  // HP mapped from level progress as a fun stat (80–100 range)
+  const currentHp = Math.max(20, Math.min(100, Math.round(50 + xpPct / 2)));
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-slate-200 flex overflow-x-hidden">
@@ -402,155 +256,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="flex-1 ml-16 transition-all duration-300">
         {/* Top Header */}
-        <header className="sticky top-0 z-40 bg-[#0a0a0f]/80 backdrop-blur-md border-b border-white/5 h-20 px-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-cyan-500/20 blur-lg rounded-full" />
-              <CustomShield className="text-cyan-400 w-10 h-10 relative z-10" strokeWidth={1.5} />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-baseline leading-none">
-                <span className="text-2xl font-black tracking-tighter text-white uppercase">PHISH</span>
-                <span className="text-2xl font-black tracking-tighter text-cyan-400 uppercase">PULSE</span>
-              </div>
-              <span className="text-[8px] font-black text-slate-600 uppercase tracking-[0.4em] mt-1 ml-0.5">Control Center</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-          <div className="relative">
-            <motion.button
-              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className="relative p-2.5 text-slate-400 hover:text-cyan-400 transition-colors bg-white/5 rounded-xl border border-white/5 hover:border-cyan-500/30 hover:shadow-[0_0_20px_rgba(6,182,212,0.25)]"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <BellIcon className="w-5 h-5" />
-              {notifications.length > 0 && (
-                <span className="absolute top-3 right-3 w-2 h-2 bg-cyan-400 rounded-full border-2 border-[#0a0a0f] animate-pulse" />
-              )}
-            </motion.button>
-
-            {/* Notifications Dropdown */}
-            <AnimatePresence>
-              {isNotificationsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute right-0 top-full mt-2 w-80 bg-[#0d1117] border border-cyan-500/20 rounded-xl shadow-2xl z-50 overflow-hidden"
-                  style={{ boxShadow: '0 20px 60px rgba(6, 182, 212, 0.15)' }}
-                >
-                  {/* Header */}
-                  <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Notifications</h3>
-                    <motion.button
-                      onClick={() => setIsNotificationsOpen(false)}
-                      className="p-1 hover:bg-white/10 rounded-lg transition-colors"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <XIcon size={14} className="text-slate-400" />
-                    </motion.button>
-                  </div>
-
-                  {/* Content */}
-                  <div className="max-h-96 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <div className="px-4 py-12 text-center flex flex-col items-center gap-3">
-                        <div className="p-3 bg-white/5 rounded-lg">
-                          <BellIcon size={24} className="text-slate-500" />
-                        </div>
-                        <p className="text-xs text-slate-500 font-semibold">No new notifications</p>
-                        <p className="text-[10px] text-slate-600">You're all caught up! Check back later.</p>
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-white/5">
-                        {notifications.map((notif) => (
-                          <motion.div
-                            key={notif.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer border-l-2"
-                            style={{
-                              borderLeftColor: notif.color === 'cyan' ? '#06b6d4' : notif.color === 'yellow' ? '#f59e0b' : '#10b981',
-                            }}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="text-lg mt-0.5">{notif.icon}</div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-black text-white uppercase tracking-tight">{notif.title}</p>
-                                <p className="text-[11px] text-slate-400 mt-1 leading-snug">{notif.message}</p>
-                                <p className="text-[9px] text-slate-600 mt-2 uppercase tracking-wider">{notif.time}</p>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-            <div className="relative flex items-center gap-4 pl-6 border-l border-white/10">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-black text-white uppercase tracking-tight">{user.name}</p>
-                <div className="flex items-center justify-end gap-1.5 mt-0.5">
-                  <span className="text-[8px] font-black bg-cyan-500/10 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-500/20 uppercase tracking-widest">
-                    LVL_{user.level}
-                  </span>
-                </div>
-              </div>
-              <div
-                className="relative cursor-pointer group"
-                onMouseEnter={() => setShowAvatarTooltip(true)}
-                onMouseLeave={() => setShowAvatarTooltip(false)}
-              >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 border border-white/20 overflow-hidden ring-2 ring-cyan-500/10 group-hover:ring-cyan-500/40 transition-all">
-                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="avatar" />
-                </div>
-
-                <AnimatePresence>
-                  {showAvatarTooltip && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute top-full right-0 mt-3 w-64 bg-[#0d1117] border border-cyan-500/20 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl z-50"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <TrophyIcon className="w-4 h-4 text-yellow-400" />
-                          <span className="text-xs font-black text-white uppercase">Level {user.level}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{user.role}</span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
-                          <span className="text-slate-400">Experience</span>
-                          <span className="text-cyan-400">{user.xp} / {xpToNextLevel} XP</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${xpPct}%` }}
-                            className="h-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{user.email}</span>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-        </header>
+        <AppHeader user={user} xpToNextLevel={xpToNextLevel} xpPct={xpPct} />
 
         <main className="p-8 lg:p-14 max-w-[1500px] mx-auto">
           {/* Welcome Banner */}
@@ -832,83 +538,12 @@ export default function DashboardPage() {
                 </div>
               </section>
 
-              {/* Store Modal */}
-              <AnimatePresence>
-                {isStoreOpen && (
-                  <div className="fixed inset-0 z-[100] flex items-center justify-end">
-                    <motion.div
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      onClick={() => setIsStoreOpen(false)}
-                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                    />
-                    <motion.div
-                      initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-                      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                      className="relative w-full max-w-md h-full bg-[#0a0a0f] border-l border-cyan-500/20 p-8 flex flex-col shadow-2xl"
-                    >
-                      <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-3">
-                          <ShoppingBagIcon className="text-cyan-400" />
-                          <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Operator Store</h3>
-                        </div>
-                        <button onClick={() => setIsStoreOpen(false)} className="p-2 text-slate-400 hover:text-white transition-colors">
-                          <XIcon size={24} />
-                        </button>
-                      </div>
-
-                      <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-4 mb-8 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <StarIcon className="text-yellow-400 w-5 h-5" />
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pulse Credits Balance</span>
-                        </div>
-                        <span className="text-xl font-black text-yellow-400 tracking-tight">{user.coins.toLocaleString()} CR</span>
-                      </div>
-
-                      <div className="space-y-6 flex-1 overflow-y-auto pr-2">
-                        {[
-                          {
-                            name: 'Health Potion',
-                            desc: 'Restore systems to operational status. Instantly restores 20 HP to your integrity level.',
-                            price: '150 Credits',
-                            icon: HeartIcon,
-                            iconColor: 'text-green-400',
-                            iconBg: 'bg-green-500/10 border-green-500/20',
-                            action: 'Deploy',
-                          },
-                          {
-                            name: 'Streak Freeze',
-                            desc: 'Preserve your active streak during mandatory downtime. Protects your daily streak for 24h.',
-                            price: '300 Credits',
-                            icon: SnowflakeIcon,
-                            iconColor: 'text-blue-400',
-                            iconBg: 'bg-blue-500/10 border-blue-500/20',
-                            action: 'Acquire',
-                          },
-                        ].map((item) => (
-                          <div key={item.name} className="bg-[#0f172a] border border-white/5 hover:border-cyan-500/30 rounded-3xl p-6 transition-all">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className={`w-12 h-12 ${item.iconBg} rounded-2xl flex items-center justify-center border`}>
-                                <item.icon className={`w-6 h-6 ${item.iconColor}`} />
-                              </div>
-                            </div>
-                            <h4 className="text-lg font-black text-white">{item.name}</h4>
-                            <p className="text-xs text-slate-500 mt-1 mb-6 leading-relaxed">{item.desc}</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-black text-yellow-400 uppercase">{item.price}</span>
-                              <button
-                                onClick={() => handlePurchase(item.name)}
-                                className="px-6 py-2 bg-cyan-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg hover:shadow-cyan-500/20 active:scale-95 transition-all"
-                              >
-                                {purchaseFeedback === item.name ? '✓ Acquired' : item.action}
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </div>
-                )}
-              </AnimatePresence>
+              {/* Store Drawer */}
+              <StoreDrawer
+                isOpen={isStoreOpen}
+                onClose={() => setIsStoreOpen(false)}
+                userCoins={user.coins}
+              />
             </div>
           </div>
         </main>
