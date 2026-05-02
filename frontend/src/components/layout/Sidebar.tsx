@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getAvatarUrlFromUser } from '@/avatarSystem';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -18,9 +19,11 @@ interface SidebarProps {
   onLogout: () => void;
   userName: string;
   onStoreClick?: () => void;
+  userAvatarSeed?: string;
+  userAvatarStyle?: string;
 }
 
-const Sidebar = ({ activeTab, onStoreClick, onLogout, userName }: SidebarProps) => {
+const Sidebar = ({ activeTab, onStoreClick, onLogout, userName, userAvatarSeed, userAvatarStyle }: SidebarProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
@@ -107,9 +110,20 @@ const Sidebar = ({ activeTab, onStoreClick, onLogout, userName }: SidebarProps) 
 
       {/* Bottom */}
       <div className="px-2 pb-6 mt-auto border-t border-white/5 pt-4 space-y-4">
-        <div className={`p-3 rounded-2xl bg-white/5 flex items-center gap-3 transition-all overflow-hidden ${!isHovered ? 'justify-center p-2' : ''}`}>
+        <div 
+          onClick={() => navigate('/profile')}
+          className={`cursor-pointer p-3 rounded-2xl bg-white/5 flex items-center gap-3 transition-all overflow-hidden ${!isHovered ? 'justify-center p-2' : ''}`}
+        >
           <div className="w-8 h-8 min-w-[32px] rounded-full bg-slate-800 border border-white/10 overflow-hidden flex-shrink-0">
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} alt="avatar" />
+            <img
+              src={getAvatarUrlFromUser(userAvatarSeed, userAvatarStyle)}
+              alt="avatar"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(userName || 'A')}`;
+              }}
+            />
           </div>
           <div className={`transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 pointer-events-none'}`}>
             <p className="text-[10px] font-black text-white uppercase tracking-tighter truncate max-w-[140px]">{userName}</p>
@@ -120,15 +134,17 @@ const Sidebar = ({ activeTab, onStoreClick, onLogout, userName }: SidebarProps) 
           </div>
         </div>
 
-        <button
+        <motion.button
           onClick={onLogout}
-          className="w-full group flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all overflow-hidden"
+          whileHover={{ x: 2 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-full group flex items-center gap-4 p-3 rounded-xl text-red-400 border border-red-500/30 bg-red-500/5 hover:border-red-400 hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:bg-red-400/5 transition-all overflow-hidden"
         >
           <LogOut className="w-5 h-5 min-w-[20px] transition-all duration-300" />
           <span className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}>
             Logout
           </span>
-        </button>
+        </motion.button>
       </div>
     </div>
   );

@@ -4,7 +4,8 @@ from app.database import get_db
 from app.schemas.auth_schema import (
     RegisterRequest, LoginRequest, VerifyOtpRequest,
     ResendOtpRequest, ForgotPasswordRequest, ForgotPasswordOtpRequest,
-    VerifyResetOtpRequest, ResetPasswordRequest, UserResponse
+    VerifyResetOtpRequest, ResetPasswordRequest, UserResponse,
+    UserAvatarUpdateRequest
 )
 from app.services import auth_service
 from app.core.jwt_handler import create_access_token
@@ -120,6 +121,15 @@ def logout(response: Response):
         secure=not settings.DEBUG,
     )
     return {"message": "Logged out successfully."}
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_me(payload: UserAvatarUpdateRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    current_user.avatar_seed = payload.avatar_seed
+    current_user.avatar_style = payload.avatar_style
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
 
 @router.get("/me", response_model=UserResponse)

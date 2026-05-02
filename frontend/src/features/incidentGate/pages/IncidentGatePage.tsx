@@ -8,6 +8,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import StoreDrawer from '@/components/layout/StoreDrawer';
 
 import useGatePhase from '../hooks/useGatePhase';
+import RequirementsModal from '../components/RequirementsModal';
 import {
   gateLockedImage,
   gateCyanImage,
@@ -30,7 +31,7 @@ import styles from './IncidentGatePage.module.css';
  */
 const IncidentGatePage = () => {
   const navigate = useNavigate();
-  const { phase, handleGateClick, onChargingComplete } = useGatePhase();
+  const { phase, handleGateClick, onChargingComplete, showRequirements, closeRequirements, advanceToCharging } = useGatePhase();
 
   const { user, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
@@ -63,6 +64,8 @@ const IncidentGatePage = () => {
   const gateImage = isOpen ? gateCyanImage : gateLockedImage;
   const gateAlt   = isOpen ? 'Incident gate — open' : 'Incident gate — locked';
 
+  const allMet = false;
+
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
@@ -78,6 +81,12 @@ const IncidentGatePage = () => {
         <AppHeader user={user} xpToNextLevel={xpToNextLevel} xpPct={xpPct} />
         <main className="flex-1">
           <div className={styles.root}>
+
+            <RequirementsModal
+              isOpen={showRequirements}
+              allMet={allMet}
+              onClose={closeRequirements}
+            />
 
             {/* Corner brackets */}
             <div className={styles.cornerTL} />
@@ -125,6 +134,19 @@ const IncidentGatePage = () => {
                     transition={{ duration: 0.4 }}
                   />
 
+                  {/* ── Layer 1.5: Energy particles ──────────────────────────── */}
+                  <AnimatePresence>
+                    {isCharging && (
+                      <motion.div
+                        className={styles.energyParticles}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
+                  </AnimatePresence>
+
                   {/* ── Layer 2: Cyan energy overlay ──────────────────────────── */}
                   <motion.img
                     src={gateCyanImage}
@@ -139,30 +161,12 @@ const IncidentGatePage = () => {
                     }
                     transition={{ duration: 2, ease: 'easeInOut' }}
                     onAnimationComplete={() => {
-                      if (phaseRef.current === 'charging') {
-                        onChargingComplete();
-                      }
+                      if (phaseRef.current === 'charging') onChargingComplete();
                     }}
                   />
 
-                  {/* ── Layer 3: Hologram cross-fade ──────────────────────────── */}
-                  <AnimatePresence mode="sync">
-
-                    {!isOpen && (
-                      <motion.img
-                        key="lock-hologram"
-                        src={lockHologram}
-                        alt="Lock hologram"
-                        draggable={false}
-                        className={styles.hologramImage}
-                        style={{ x: '-50%' }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: isCharging ? 0 : 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.8 }}
-                      />
-                    )}
-
+                  {/* ── Layer 3: Hologram ──────────────────────────── */}
+                  <AnimatePresence>
                     {isOpen && (
                       <motion.img
                         key="energy-hologram"
@@ -171,19 +175,14 @@ const IncidentGatePage = () => {
                         draggable={false}
                         className={styles.hologramImage}
                         style={{ x: '-50%' }}
-                        initial={{ opacity: 0, scale: 1 }}
-                        animate={{
-                          opacity: 1,
-                          scale: 1,
-                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{
-                          opacity: { duration: 0.8 },
-                        }}
+                        transition={{ duration: 0.8 }}
                       />
                     )}
-
                   </AnimatePresence>
+
 
                 </div>
               </div>

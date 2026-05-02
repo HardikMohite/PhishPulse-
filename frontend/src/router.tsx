@@ -10,6 +10,7 @@ import CTFPage from "@/pages/ctf/CTFPage";
 import LeaderboardPage from "@/pages/leaderboard/LeaderboardPage";
 import HubPage from "@/pages/HubPage";
 import VaultLevelsPage from "@/pages/vault-realm/VaultLevelsPage";
+import ProfilePage from "@/pages/profile/ProfilePage";
 
 // ── Vault 01 ──────────────────────────────────────────────────────────────────
 import Vault01Page from "@/features/vault01/pages/Vault01Page";
@@ -79,7 +80,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/profile",
-    element: <Navigate to="/dashboard" replace />,
+    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
   },
   {
     path: "/profile/titles",

@@ -90,3 +90,15 @@ export const resetPassword = async (data: ResetPasswordData) => {
   });
   return response.data;
 };
+
+export const updateAvatar = async (
+  avatarSeed: string, 
+  avatarStyle: string
+) => {
+  // Using AUTH_ENDPOINTS.ME ('auth/me') instead of '/users/me' to match the backend
+  const response = await api.patch(AUTH_ENDPOINTS.ME, { 
+    avatar_seed: avatarSeed, 
+    avatar_style: avatarStyle 
+  });
+  return response.data;
+};

@@ -24,7 +24,8 @@ declare module "*.module.scss";
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string;
-  readonly VITE_INCIDENT_GATE_LOCKED: string;
+  readonly VITE_INCIDENT_GATE_LOCKED: false;
+  readonly VITE_GATE_REQUIREMENT: false;
 }
 
 interface ImportMeta {

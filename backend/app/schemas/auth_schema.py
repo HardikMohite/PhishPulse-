@@ -80,6 +80,11 @@ class ResetPasswordRequest(BaseModel):
         return v
 
 
+class UserAvatarUpdateRequest(BaseModel):
+    avatar_seed: str
+    avatar_style: str
+
+
 class UserResponse(BaseModel):
     id: str
     name: str
@@ -91,6 +96,8 @@ class UserResponse(BaseModel):
     coins: int
     streak: int
     is_verified: bool
+    avatar_seed: str
+    avatar_style: str
 
     class Config:
         from_attributes = True

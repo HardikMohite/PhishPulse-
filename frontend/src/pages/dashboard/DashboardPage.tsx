@@ -159,7 +159,7 @@ const StatCard = ({
 /* ─── Dashboard Page ──────────────────────────────────────── */
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user, setUser } = useAuthStore();
+  const { user, health: currentHp, setUser } = useAuthStore();
 
   const [loading, setLoading] = useState(true);
   const [dailyChallenge, setDailyChallenge] = useState<CTFChallenge | null>(null);
@@ -242,7 +242,7 @@ export default function DashboardPage() {
   const xpToNextLevel = user.level * 100;
   const xpPct = Math.min((user.xp / xpToNextLevel) * 100, 100);
   // HP mapped from level progress as a fun stat (80–100 range)
-  const currentHp = Math.max(20, Math.min(100, Math.round(50 + xpPct / 2)));
+  // currentHp comes from useAuthStore above — real persisted health
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-slate-200 flex overflow-x-hidden">
@@ -251,12 +251,20 @@ export default function DashboardPage() {
         onStoreClick={() => setIsStoreOpen(true)}
         onLogout={handleLogout}
         userName={user.name}
+        userAvatarSeed={user.avatar_seed || 'agent-one'}
+        userAvatarStyle={user.avatar_style || 'avataaars'}
       />
 
       {/* Main Content */}
       <div className="flex-1 ml-16 transition-all duration-300">
         {/* Top Header */}
-        <AppHeader user={user} xpToNextLevel={xpToNextLevel} xpPct={xpPct} />
+        <AppHeader 
+          user={user} 
+          xpToNextLevel={xpToNextLevel} 
+          xpPct={xpPct} 
+          userAvatarSeed={user.avatar_seed || 'agent-one'}
+          userAvatarStyle={user.avatar_style || 'avataaars'}
+        />
 
         <main className="p-8 lg:p-14 max-w-[1500px] mx-auto">
           {/* Welcome Banner */}

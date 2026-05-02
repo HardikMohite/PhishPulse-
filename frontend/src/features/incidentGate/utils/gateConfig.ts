@@ -9,3 +9,6 @@
 
 export const isGateLocked: boolean =
   import.meta.env.VITE_INCIDENT_GATE_LOCKED === "true";
+
+export const GATE_REQUIREMENT: boolean =
+  import.meta.env.VITE_GATE_REQUIREMENT !== "false";

@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { getAvatarUrlFromUser } from '@/avatarSystem';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Trophy } from 'lucide-react';
+import { Bell, Trophy, X } from 'lucide-react';
 import CustomShield from '@/components/CustomShield';
 
 export interface AppHeaderProps {
@@ -14,9 +16,13 @@ export interface AppHeaderProps {
   };
   xpToNextLevel: number;
   xpPct: number;
+  notifications?: any[];
+  userAvatarSeed?: string;
+  userAvatarStyle?: string;
 }
 
-export default function AppHeader({ user, xpToNextLevel, xpPct }: AppHeaderProps) {
+export default function AppHeader({ user, xpToNextLevel, xpPct, notifications = [], userAvatarSeed, userAvatarStyle }: AppHeaderProps) {
+  const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [showAvatarTooltip, setShowAvatarTooltip] = useState(false);
 
@@ -42,13 +48,15 @@ export default function AppHeader({ user, xpToNextLevel, xpPct }: AppHeaderProps
       {/* Right controls */}
       <div className="flex items-center gap-6">
         {/* Bell / Notifications */}
-        <button
+        <motion.button
           onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-          className="relative p-2.5 text-slate-400 hover:text-cyan-400 transition-colors bg-white/5 rounded-xl border border-white/5"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative p-2.5 text-slate-400 hover:text-cyan-400 transition-colors bg-white/5 rounded-xl border border-white/5 hover:border-cyan-500/30 hover:shadow-[0_0_20px_rgba(6,182,212,0.25)]"
         >
           <Bell className="w-5 h-5" />
-          <span className="absolute top-3 right-3 w-2 h-2 bg-cyan-400 rounded-full border-2 border-[#0a0a0f]" />
-        </button>
+          <span className="absolute top-3 right-3 w-2 h-2 bg-cyan-400 rounded-full border-2 border-[#0a0a0f] animate-pulse" />
+        </motion.button>
 
         {/* Notifications panel (slide-down) */}
         <AnimatePresence>
@@ -57,12 +65,37 @@ export default function AppHeader({ user, xpToNextLevel, xpPct }: AppHeaderProps
               initial={{ opacity: 0, y: -10, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.97 }}
-              className="absolute top-20 right-8 w-80 bg-[#0d1117] border border-cyan-500/20 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl z-50"
+              style={{ boxShadow: '0 20px 60px rgba(6, 182, 212, 0.15)' }}
+              className="absolute top-20 right-8 w-80 bg-[#0d1117] border border-cyan-500/20 rounded-2xl p-5 backdrop-blur-xl z-50"
             >
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
-                Notifications
-              </p>
-              <p className="text-xs text-slate-400">No new alerts. All systems nominal.</p>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  Notifications
+                </p>
+                <button onClick={() => setIsNotificationsOpen(false)} className="text-slate-500 hover:text-white transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                    <Bell className="w-5 h-5 text-slate-500" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-300 mb-1">No new notifications</p>
+                  <p className="text-xs text-slate-500">You're all caught up! Check back later.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                  {notifications.map((notif: any, i: number) => (
+                    <div key={i} className={`p-3 rounded-xl bg-white/5 border-l-2 ${notif.type === 'alert' ? 'border-red-500' : notif.type === 'success' ? 'border-green-500' : 'border-cyan-500'}`}>
+                      <p className="text-xs font-bold text-white mb-1">{notif.title}</p>
+                      <p className="text-[10px] text-slate-400">{notif.message}</p>
+                      <p className="text-[8px] text-slate-500 uppercase tracking-widest mt-2">{notif.time}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -83,8 +116,18 @@ export default function AppHeader({ user, xpToNextLevel, xpPct }: AppHeaderProps
             onMouseEnter={() => setShowAvatarTooltip(true)}
             onMouseLeave={() => setShowAvatarTooltip(false)}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 border border-white/20 overflow-hidden ring-2 ring-cyan-500/10 group-hover:ring-cyan-500/40 transition-all">
-              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="avatar" />
+            <div 
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 border border-white/20 overflow-hidden ring-2 ring-cyan-500/10 group-hover:ring-cyan-500/40 transition-all"
+              onClick={() => navigate('/profile')}
+            >
+              <img
+                src={getAvatarUrlFromUser(userAvatarSeed, userAvatarStyle)}
+                alt="avatar"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user?.name || user?.email || 'agent')}`;
+                }}
+              />
             </div>
 
             <AnimatePresence>
@@ -119,10 +162,16 @@ export default function AppHeader({ user, xpToNextLevel, xpPct }: AppHeaderProps
                       />
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3">
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
                       {user.email}
                     </span>
+                    <button 
+                      onClick={() => navigate('/profile')}
+                      className="w-full py-2 bg-white/5 hover:bg-cyan-500/10 text-cyan-400 text-xs font-bold uppercase tracking-widest rounded-lg transition-colors border border-transparent hover:border-cyan-500/30"
+                    >
+                      View Full Profile
+                    </button>
                   </div>
                 </motion.div>
               )}

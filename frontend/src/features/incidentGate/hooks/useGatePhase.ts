@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { isGateLocked } from '../utils/gateConfig';
+import { isGateLocked, GATE_REQUIREMENT } from '../utils/gateConfig';
 
 // ─── Phase type ────────────────────────────────────────────────────────────────
 /**
@@ -16,6 +16,9 @@ export type GatePhase = 'locked' | 'charging' | 'ready' | 'entering';
 export interface UseGatePhaseReturn {
   /** Current phase of the gate state machine. */
   phase: GatePhase;
+  showRequirements: boolean;
+  closeRequirements: (granted?: boolean) => void;
+  advanceToCharging: () => void;
   /**
    * Click handler attached to the gate visual.
    * locked    → advances to 'charging' (starts the energy-fill animation)
@@ -47,18 +50,47 @@ const useGatePhase = (): UseGatePhaseReturn => {
   const [phase, setPhase] = useState<GatePhase>(() =>
     isGateLocked ? 'locked' : 'ready'
   );
+  const [showRequirements, setShowRequirements] = useState(false);
 
   // Sync with the env flag on mount.
   useEffect(() => {
     setPhase(isGateLocked ? 'locked' : 'ready');
   }, []);
 
+  const closeRequirements = useCallback((granted?: boolean) => {
+    setShowRequirements(false);
+    if (granted) {
+      setPhase((current) => {
+        if (current === 'locked') {
+          console.log('[useGatePhase] locked → charging (requirements met)');
+          return 'charging';
+        }
+        return current;
+      });
+    }
+  }, []);
+
+  const advanceToCharging = useCallback(() => {
+    setPhase((current) => {
+      if (current === 'locked') {
+        console.log('[useGatePhase] locked → charging (bypassed reqs)');
+        return 'charging';
+      }
+      return current;
+    });
+  }, []);
+
   /** locked → charging | ready → entering */
   const handleGateClick = useCallback(() => {
     setPhase((current) => {
       if (current === 'locked') {
-        console.log('[useGatePhase] locked → charging');
-        return 'charging';
+        if (GATE_REQUIREMENT) {
+          setShowRequirements(true);
+          return current;
+        } else {
+          console.log('[useGatePhase] locked → charging');
+          return 'charging';
+        }
       }
       if (current === 'ready') {
         console.log('[useGatePhase] ready → entering');
@@ -80,7 +112,7 @@ const useGatePhase = (): UseGatePhaseReturn => {
     });
   }, []);
 
-  return { phase, handleGateClick, onChargingComplete };
+  return { phase, handleGateClick, onChargingComplete, showRequirements, closeRequirements, advanceToCharging };
 };
 
 export default useGatePhase;

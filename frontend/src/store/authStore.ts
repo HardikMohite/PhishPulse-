@@ -15,6 +15,8 @@ export interface User {
   created_at?: string;
   /** Client-side health (0–100). Not stored in DB; persisted locally. */
   health?: number;
+  avatar_seed?: string;
+  avatar_style?: string;
 }
 
 export const MAX_HP = 100;

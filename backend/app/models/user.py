@@ -27,6 +27,10 @@ class User(Base):
     coins = Column(Integer, default=0)
     streak = Column(Integer, default=0)
 
+    # Avatar
+    avatar_seed = Column(String, default="agent-one")
+    avatar_style = Column(String, default="avataaars")
+
     # Account state
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)  # True after 2FA on registration
