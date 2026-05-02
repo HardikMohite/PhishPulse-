@@ -482,7 +482,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-screen" style={{ background: '#0a0a0f', fontFamily: "'Inter', sans-serif" }}>
-      <Sidebar activeTab="profile" onLogout={handleLogout} userName={currentUser.email || 'Agent'} onStoreClick={() => {}} />
+      <Sidebar activeTab="profile" onLogout={handleLogout} userName={currentUser.name || 'Agent'} onStoreClick={() => {}} />
 
       <div className="flex-1 ml-16 transition-all duration-300 flex flex-col min-h-screen">
         {/* Header */}

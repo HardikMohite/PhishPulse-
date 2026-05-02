@@ -134,7 +134,7 @@ export default function CTFPage() {
 
   return (
     <div className="flex min-h-screen" style={{ background: "#0a0a0f", fontFamily: "'Inter', sans-serif" }}>
-      <Sidebar activeTab="ctf" onStoreClick={() => setIsStoreOpen(true)} onLogout={handleLogout} userName={user?.email || "Agent"} />
+      <Sidebar activeTab="ctf" onStoreClick={() => setIsStoreOpen(true)} onLogout={handleLogout} userName={user?.name || "Agent"} />
 
       <div className="flex-1 ml-16 transition-all duration-300 flex flex-col min-h-screen">
 
